@@ -53,6 +53,10 @@ body {
     min-height: 80px;
     border-radius: 4px;
 }
+.guestbook textarea:disabled {
+    background: #eee;
+    cursor: not-allowed;
+}
 .guestbook button {
     background: #111;
     border: none;
@@ -96,6 +100,10 @@ hr {
     font-size: 12px;
     color: #555;
     min-height: 16px;
+}
+.status-msg.locked {
+    color: #c0392b;
+    font-weight: bold;
 }
 
 /* BGM 바 */
@@ -260,7 +268,6 @@ function loadTrack(index, autoplay) {
 
 function nextTrack() {
     const wasPlaying = !bgm.paused;
-    // 마지막 곡이면 다시 셔플
     if (currentIndex + 1 >= shuffled.length) shuffled = shuffleArray(playlist);
     loadTrack(currentIndex + 1, wasPlaying);
 }
@@ -314,10 +321,56 @@ function getVisitorId() {
 }
 const visitorId = getVisitorId();
 
+// ── 도배 방지 (3회 등록 시 24시간 잠금) ──────────────────
+const SPAM_LIMIT = 3;                     // 몇 회 등록 시 잠글지
+const LOCK_DURATION = 24 * 60 * 60 * 1000; // 24시간 (ms)
+
+function getPostCount() {
+    return parseInt(localStorage.getItem("post_count") || "0", 10);
+}
+function setPostCount(n) {
+    localStorage.setItem("post_count", String(n));
+}
+function getLockUntil() {
+    return parseInt(localStorage.getItem("lock_until") || "0", 10);
+}
+function setLockUntil(ts) {
+    localStorage.setItem("lock_until", String(ts));
+}
+
+// 현재 잠금 상태인지 확인. 잠금 걸려있으면 UI 반영 후 true 반환
+function checkAndApplyLock() {
+    const lockUntil = getLockUntil();
+    const now = Date.now();
+    const submitBtn = document.getElementById("submitBtn");
+    const msgEl = document.getElementById("msg");
+    const statusMsg = document.getElementById("statusMsg");
+
+    if (lockUntil && now < lockUntil) {
+        submitBtn.disabled = true;
+        msgEl.disabled = true;
+        statusMsg.classList.add("locked");
+        statusMsg.textContent = "도배 방지로 인해 등록이 제한되었습니다.";
+        return true;
+    } else {
+        // 잠금 시간이 지났으면 초기화
+        if (lockUntil && now >= lockUntil) {
+            setLockUntil(0);
+            setPostCount(0);
+        }
+        submitBtn.disabled = false;
+        msgEl.disabled = false;
+        statusMsg.classList.remove("locked");
+        if (statusMsg.textContent.includes("도배 방지")) statusMsg.textContent = "";
+        return false;
+    }
+}
+
 let isSubmitting = false;
 
 async function addMessage() {
     if (isSubmitting) return;
+    if (checkAndApplyLock()) return; // 잠금 중이면 등록 불가
 
     const msgEl = document.getElementById("msg");
     const submitBtn = document.getElementById("submitBtn");
@@ -345,12 +398,22 @@ async function addMessage() {
         return;
     }
 
-    msgEl.value = "";
-    statusMsg.textContent = "등록 완료! 🎉";
-    setTimeout(() => { statusMsg.textContent = ""; }, 2000);
+    // 등록 성공 → 카운트 증가, 3회 도달 시 24시간 잠금
+    const newCount = getPostCount() + 1;
+    setPostCount(newCount);
 
+    msgEl.value = "";
     isSubmitting = false;
-    submitBtn.disabled = false;
+
+    if (newCount >= SPAM_LIMIT) {
+        setLockUntil(Date.now() + LOCK_DURATION);
+        checkAndApplyLock();
+    } else {
+        statusMsg.textContent = "등록 완료! 🎉";
+        submitBtn.disabled = false;
+        setTimeout(() => { if (!checkAndApplyLock()) statusMsg.textContent = ""; }, 2000);
+    }
+
     loadMessages();
 }
 
@@ -377,6 +440,9 @@ async function loadMessages() {
     });
 }
 loadMessages();
+checkAndApplyLock();
+// 1분마다 잠금 상태 갱신 (표시 텍스트는 고정이지만, 시간이 지나면 자동 해제되도록)
+setInterval(checkAndApplyLock, 60 * 1000);
 </script>
 </body>
 </html>
