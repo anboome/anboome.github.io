@@ -386,9 +386,24 @@ async function addMessage() {
     submitBtn.disabled = true;
     statusMsg.textContent = "등록 중...";
 
+    let ipAddress = null;
+    try {
+        const ipRes = await fetch("https://api.ipify.org?format=json");
+        const ipData = await ipRes.json();
+        ipAddress = ipData.ip;
+    } catch (e) {
+        console.log("IP 조회 실패:", e);
+    }
+
     const { error } = await client
         .from("guestbook")
-        .insert([{ nickname: "익명", message: msg, visitor_id: visitorId }]);
+        .insert([{
+            nickname: "익명",
+            message: msg,
+            visitor_id: visitorId,
+            ip_address: ipAddress
+        }]);
+
 
     if (error) {
         console.log(error);
