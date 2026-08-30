@@ -38,9 +38,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
+    @font-face {
+        font-family: 'TypoEnterForever10';
+        src: url('typoenter-forever10.ttf') format('truetype');
+        font-display: swap;
+    }
+
     :root {
         /* 포인트 색상만 여기서 지정해 주세요. 나머지는 전부 흰색/회색입니다. */
-        --accent: #ff1f59;
+        --accent: #999999;
 
         --white: #ffffff;
         --gray-50: #fafafa;
@@ -70,7 +76,7 @@
         justify-content: center;
         align-items: flex-start;
         padding: 48px 16px;
-        font-family: 'Nanum Gothic', sans-serif;
+        font-family: 'TypoEnterForever10', 'Nanum Gothic', sans-serif;
         color: var(--gray-700);
     }
 
@@ -369,13 +375,13 @@
 
     <!-- 1. 소개 -->
     <div class="intro">
-        <p class="sub">9월의 목표: 밥 잘 먹고 잘 자기</p>
+        <p class="sub">여기에 소개 문구를 적어주세요</p>
         <p class="env-note">이 사이트는 데스크탑 환경에 최적화 되어 있습니다</p>
     </div>
 
     <!-- 2. 공지 한 줄 -->
     <div class="notice-wrap">
-        <span class="notice-track">(2026.08.30~) 사이트 리뉴얼 중...</span>
+        <span class="notice-track">(2026.08.30) 사이트 리뉴얼 중...</span>
     </div>
 
     <div class="dots">• • • • • • • • • •</div>
@@ -440,8 +446,8 @@
 
 <script>
     const tracks = [
-        { title: "SKool의 julian", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/Skool%20Julian.mp3" },
-        { title: "비의 안녕이란 말 대신", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/RAIN%20SAYGOODBYE.mp3" }
+        { title: "SKool julian", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/Skool%20Julian.mp3" },
+        { title: "비 안녕이란 말 대신이야", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/RAIN%20SAYGOODBYE.mp3" }
     ];
 
     let current = 0;
