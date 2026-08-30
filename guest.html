@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>방명록 - 붐이 홈피</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --accent: #999999;
+        --white: #ffffff;
+        --gray-50: #fafafa;
+        --gray-100: #f2f2f2;
+        --gray-200: #e4e4e4;
+        --gray-300: #cccccc;
+        --gray-500: #999999;
+        --gray-700: #555555;
+        --gray-900: #222222;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; }
+    body {
+        min-height: 100vh;
+        background: var(--gray-100);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 48px 16px;
+        font-family: 'Nanum Gothic', sans-serif;
+        color: var(--gray-700);
+    }
+    .site {
+        width: 100%;
+        max-width: 700px;
+        background: var(--white);
+        border: 1px solid var(--gray-300);
+    }
+    .header {
+        padding: 20px 32px;
+        text-align: center;
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 13px;
+        color: var(--gray-500);
+        position: relative;
+    }
+    .back-link {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 11px;
+        color: var(--gray-300);
+        text-decoration: none;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .guestbook { padding: 24px 32px 30px; }
+    .guestbook-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 18px;
+    }
+    .guestbook textarea {
+        background: var(--white);
+        border: 1px solid var(--gray-300);
+        color: var(--gray-900);
+        padding: 10px;
+        font-size: 13px;
+        font-family: inherit;
+        width: 100%;
+        resize: vertical;
+        min-height: 80px;
+    }
+    .guestbook textarea:disabled { background: var(--gray-100); cursor: not-allowed; }
+    .guestbook button {
+        background: var(--white);
+        border: 1px solid var(--gray-300);
+        padding: 7px 18px;
+        color: var(--gray-700);
+        cursor: pointer;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        align-self: flex-end;
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+    .guestbook button:hover { background: var(--accent); border-color: var(--accent); color: var(--white); }
+    .guestbook button:disabled { opacity: 0.5; cursor: not-allowed; background: var(--white); color: var(--gray-700); border-color: var(--gray-300); }
+
+    .status-msg { font-size: 11px; color: var(--gray-500); min-height: 14px; }
+    .status-msg.locked { color: #b3554a; font-weight: bold; }
+
+    .entry-list { list-style: none; border-top: 1px solid var(--gray-200); }
+    .entry {
+        padding: 10px 2px;
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 12px;
+        color: var(--gray-700);
+        word-break: break-all;
+        line-height: 1.6;
+    }
+    .entry .name { color: var(--gray-900); font-weight: bold; margin-right: 4px; }
+    .entry-empty { padding: 16px 2px; font-size: 12px; color: var(--gray-300); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="site">
+    <div class="header">
+        <a class="back-link" href="index.html">← 홈</a>
+        + 방명록
+    </div>
+
+    <div class="guestbook">
+        <div class="guestbook-form">
+            <textarea id="msg" placeholder="♬.."></textarea>
+            <div class="status-msg" id="statusMsg"></div>
+            <button id="submitBtn" type="button">등록하기</button>
+        </div>
+        <ul class="entry-list" id="guestbook-list">
+            <li class="entry-empty">불러오는 중...</li>
+        </ul>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const supabaseUrl = "https://nlvkfrekpundyinhgtzo.supabase.co";
+    const supabaseKey = "sb_publishable_DQs8rT0Ff8WbemjjVSuV7w_DavNXXO3";
+    const client = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // 방문자 UUID (localStorage, 메인 사이트 일기 반응과 동일한 방식/키 공유)
+    function getVisitorId() {
+        let id = localStorage.getItem("visitor_id");
+        if (!id) {
+            id = crypto.randomUUID();
+            localStorage.setItem("visitor_id", id);
+        }
+        return id;
+    }
+    const visitorId = getVisitorId();
+
+    // 도배 방지 (3회 등록 시 24시간 잠금)
+    const SPAM_LIMIT = 3;
+    const LOCK_DURATION = 24 * 60 * 60 * 1000;
+
+    function getPostCount() { return parseInt(localStorage.getItem("post_count") || "0", 10); }
+    function setPostCount(n) { localStorage.setItem("post_count", String(n)); }
+    function getLockUntil() { return parseInt(localStorage.getItem("lock_until") || "0", 10); }
+    function setLockUntil(ts) { localStorage.setItem("lock_until", String(ts)); }
+
+    function checkAndApplyLock() {
+        const lockUntil = getLockUntil();
+        const now = Date.now();
+        const submitBtn = document.getElementById("submitBtn");
+        const msgEl = document.getElementById("msg");
+        const statusMsg = document.getElementById("statusMsg");
+
+        if (lockUntil && now < lockUntil) {
+            submitBtn.disabled = true;
+            msgEl.disabled = true;
+            statusMsg.classList.add("locked");
+            statusMsg.textContent = "도배 방지로 인해 등록이 제한되었습니다.";
+            return true;
+        } else {
+            if (lockUntil && now >= lockUntil) {
+                setLockUntil(0);
+                setPostCount(0);
+            }
+            submitBtn.disabled = false;
+            msgEl.disabled = false;
+            statusMsg.classList.remove("locked");
+            if (statusMsg.textContent.includes("도배 방지")) statusMsg.textContent = "";
+            return false;
+        }
+    }
+
+    let isSubmitting = false;
+
+    async function addMessage() {
+        if (isSubmitting) return;
+        if (checkAndApplyLock()) return;
+
+        const msgEl = document.getElementById("msg");
+        const submitBtn = document.getElementById("submitBtn");
+        const statusMsg = document.getElementById("statusMsg");
+        const msg = msgEl.value.trim();
+
+        if (!msg) {
+            statusMsg.textContent = "메시지를 입력해주세요!";
+            return;
+        }
+
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        statusMsg.textContent = "등록 중...";
+
+        let ipAddress = null;
+        try {
+            const ipRes = await fetch("https://api.ipify.org?format=json");
+            const ipData = await ipRes.json();
+            ipAddress = ipData.ip;
+        } catch (e) {
+            console.log("IP 조회 실패:", e);
+        }
+
+        const { error } = await client
+            .from("guestbook")
+            .insert([{
+                nickname: "익명",
+                message: msg,
+                visitor_id: visitorId,
+                ip_address: ipAddress
+            }]);
+
+        if (error) {
+            console.log(error);
+            statusMsg.textContent = "등록 실패 😢 다시 시도해주세요.";
+            isSubmitting = false;
+            submitBtn.disabled = false;
+            return;
+        }
+
+        const newCount = getPostCount() + 1;
+        setPostCount(newCount);
+
+        msgEl.value = "";
+        isSubmitting = false;
+
+        if (newCount >= SPAM_LIMIT) {
+            setLockUntil(Date.now() + LOCK_DURATION);
+            checkAndApplyLock();
+        } else {
+            statusMsg.textContent = "등록 완료! 🎉";
+            submitBtn.disabled = false;
+            setTimeout(() => { if (!checkAndApplyLock()) statusMsg.textContent = ""; }, 2000);
+        }
+
+        loadMessages();
+    }
+
+    document.getElementById("submitBtn").addEventListener("click", addMessage);
+    document.getElementById("msg").addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            addMessage();
+        }
+    });
+
+    async function loadMessages() {
+        const { data } = await client
+            .from("guestbook")
+            .select("*")
+            .order("id", { ascending: false });
+        const box = document.getElementById("guestbook-list");
+        box.innerHTML = "";
+        if (!data || data.length === 0) {
+            box.innerHTML = `<li class="entry-empty">아직 남겨진 방명록이 없어요</li>`;
+            return;
+        }
+        data.forEach(row => {
+            const li = document.createElement("li");
+            li.className = "entry";
+            li.innerHTML = `<span class="name">${row.nickname || "익명"}</span>: ${row.message}`;
+            box.appendChild(li);
+        });
+    }
+
+    loadMessages();
+    checkAndApplyLock();
+    setInterval(checkAndApplyLock, 60 * 1000);
+</script>
+
+</body>
+</html>
