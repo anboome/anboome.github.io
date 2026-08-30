@@ -369,13 +369,13 @@
 
     <!-- 1. 소개 -->
     <div class="intro">
-        <p class="sub">9월의 목표: 밥 잘 먹고 잠 잘 자기</p>
+        <p class="sub">9월의 목표: 밥 잘 먹고 잘 자기</p>
         <p class="env-note">이 사이트는 데스크탑 환경에 최적화 되어 있습니다</p>
     </div>
 
     <!-- 2. 공지 한 줄 -->
     <div class="notice-wrap">
-        <span class="notice-track">(2026.08.30) 사이트 리뉴얼 중...</span>
+        <span class="notice-track">(2026.08.30~) 사이트 리뉴얼 중...</span>
     </div>
 
     <div class="dots">• • • • • • • • • •</div>
@@ -403,7 +403,7 @@
 
     <!-- 6. 방명록 -->
     <div class="guest">
-        <a href="guest.html">+ 방명록</a>
+        <a href="guest.html" target="_blank" rel="noopener">+ 방명록</a>
     </div>
 
     <!-- 6-2. 일기 (사이트 주인만 글쓰기 가능, 방문자는 표정 반응만) -->
@@ -498,8 +498,22 @@
         loadTrack(current + 1, true);
     });
 
-    // 초기 상태: 제목만 표시, 재생은 사용자가 버튼을 눌러야 시작됨 (브라우저 자동재생 정책)
+    // 초기 상태: 자동재생 시도, 브라우저 정책으로 막히면 첫 클릭 시 재생
     titleEl.textContent = tracks[current].title;
+    loadTrack(current, false);
+    audio.play().then(() => {
+        isPlaying = true;
+        playBtn.textContent = '⏸';
+    }).catch(() => {
+        const startOnFirstClick = () => {
+            audio.play().then(() => {
+                isPlaying = true;
+                playBtn.textContent = '⏸';
+            }).catch(() => {});
+            document.removeEventListener('click', startOnFirstClick);
+        };
+        document.addEventListener('click', startOnFirstClick);
+    });
 </script>
 
 <!-- ============================================================
