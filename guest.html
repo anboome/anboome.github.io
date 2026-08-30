@@ -3,7 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>방명록 - 붐이 홈피</title>
+<title>붐이 홈피</title>
+
+<!--
+  ============================================================
+  heavenlyside5.naru.pub 스타일 (흰색 + 회색 미니멀) 레이아웃.
+  포인트 컬러는 아래 :root 의 --accent 한 줄만 바꾸면 전체에 적용돼요.
+
+  섹션 순서:
+   1. 소개 문구
+   2. 공지사항 한 줄
+   3. 구분선
+   4. 중간 이미지
+   5. 음악 플레이어 (곡 2개, prev/재생/next 실제 작동)
+   6. 방명록 링크
+   6-2. 일기 (Supabase 연동, 주인만 작성 / 방문자는 표정 반응만)
+   7. 카피라이트
+
+  PC/모바일 둘 다 자연스럽게 보이도록 유동폭(%) + 최대폭 구조로 짰습니다.
+
+  ★ 일기 기능을 쓰려면 아래 순서대로 준비해 주세요 ★
+  1) Supabase 대시보드 SQL Editor에서 안내받은 SQL 실행 (테이블 + 보안 규칙 생성)
+  2) Authentication > Providers 에서 Email 활성화 확인
+  3) Authentication > Users 에서 본인 이메일/비밀번호로 계정 하나 생성
+     (Auto Confirm User 체크)
+  4) 이 파일 하단 스크립트의 SUPABASE_ANON_KEY 값을
+     Settings > API 의 "anon public" 키로 교체
+  5) 사이트에서 일기 칸의 ✎ 를 눌러 방금 만든 계정으로 로그인하면 글쓰기 가능
+  ============================================================
+-->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,7 +39,9 @@
 
 <style>
     :root {
+        /* 포인트 색상만 여기서 지정해 주세요. 나머지는 전부 흰색/회색입니다. */
         --accent: #999999;
+
         --white: #ffffff;
         --gray-50: #fafafa;
         --gray-100: #f2f2f2;
@@ -21,8 +51,18 @@
         --gray-700: #555555;
         --gray-900: #222222;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        cursor: url('hamster10.gif'), auto;
+    }
+
+    html, body {
+        width: 100%;
+    }
+
     body {
         min-height: 100vh;
         background: var(--gray-100);
@@ -33,246 +73,638 @@
         font-family: 'Nanum Gothic', sans-serif;
         color: var(--gray-700);
     }
+
+    /* ===== 전체 프레임: 데스크탑에서는 700px 고정, 모바일에서는 화면폭에 맞춰 유동 ===== */
     .site {
         width: 100%;
         max-width: 700px;
         background: var(--white);
         border: 1px solid var(--gray-300);
     }
-    .header {
-        padding: 20px 32px;
+
+    /* ===== 1. 소개 영역 ===== */
+    .intro {
+        padding: 30px 32px 20px;
         text-align: center;
         border-bottom: 1px solid var(--gray-200);
+    }
+    .intro .sub {
         font-size: 13px;
         color: var(--gray-500);
-        position: relative;
+        line-height: 1.8;
     }
-    .back-link {
-        position: absolute;
-        left: 20px;
-        top: 50%;
-        transform: translateY(-50%);
+    .intro .env-note {
+        margin-top: 14px;
         font-size: 11px;
         color: var(--gray-300);
-        text-decoration: none;
     }
-    .back-link:hover { color: var(--accent); }
 
-    .guestbook { padding: 24px 32px 30px; }
-    .guestbook-form {
+    /* ===== 2. 공지 한 줄 ===== */
+    .notice-wrap {
+        overflow: hidden;
+        white-space: nowrap;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
+    }
+    .notice-track {
+        display: inline-block;
+        padding-left: 100%;
+        font-size: 11px;
+        color: var(--gray-700);
+        animation: marquee 16s linear infinite;
+    }
+    @keyframes marquee {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-100%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .notice-track { animation: none; padding-left: 0; }
+    }
+
+    /* ===== 3. 구분선 ===== */
+    .dots {
+        text-align: center;
+        letter-spacing: 6px;
+        color: var(--gray-300);
+        font-size: 11px;
+        padding: 18px 0 4px;
+    }
+
+    /* ===== 4. 중간 이미지 ===== */
+    .middle-photo {
+        margin: 18px 32px 0;
+        border: 1px solid var(--gray-200);
+        line-height: 0;
+    }
+    .middle-photo img {
+        width: 100%;
+        display: block;
+        object-fit: cover;
+    }
+
+    /* ===== 5. 음악 플레이어 ===== */
+    .player {
+        margin: 22px 32px 0;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        padding: 14px;
+        border: 1px solid var(--gray-200);
+        background: var(--gray-50);
+    }
+    .player .cover {
+        width: 64px;
+        height: 64px;
+        flex: none;
+        overflow: hidden;
+        border: 1px solid var(--gray-300);
+        background: var(--gray-100);
+    }
+    .player .cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .player .meta {
+        flex: 1;
+        min-width: 0;
+    }
+    .player .status {
+        font-size: 12px;
+        color: var(--gray-700);
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .player .controls {
+        margin-top: 6px;
+        font-size: 16px;
+        color: var(--accent);
+        display: flex;
+        gap: 16px;
+    }
+    .player .controls span {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    /* ===== 6. 방명록 버튼 ===== */
+    .guest {
+        text-align: center;
+        margin: 22px 0 6px;
+    }
+    .guest a {
+        display: inline-block;
+        padding: 7px 20px;
+        border: 1px solid var(--gray-300);
+        color: var(--gray-700);
+        font-size: 12px;
+        text-decoration: none;
+        letter-spacing: 1px;
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+    .guest a:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--white);
+    }
+
+    /* ===== 6-2. 일기 ===== */
+    .diary {
+        margin: 22px 32px 0;
+        border: 1px solid var(--gray-200);
+    }
+    .diary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
+        font-size: 12px;
+        letter-spacing: 1px;
+        color: var(--gray-700);
+    }
+    .diary-login-link {
+        cursor: pointer;
+        color: var(--gray-300);
+        font-size: 13px;
+        user-select: none;
+    }
+    .diary-login-link:hover { color: var(--accent); }
+
+    .diary-login-box, .diary-write-box {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--gray-200);
         display: flex;
         flex-direction: column;
         gap: 8px;
-        margin-bottom: 18px;
     }
-    .guestbook textarea {
-        background: var(--white);
+    .diary-login-box input,
+    .diary-write-box input,
+    .diary-write-box textarea {
         border: 1px solid var(--gray-300);
-        color: var(--gray-900);
-        padding: 10px;
-        font-size: 13px;
+        padding: 7px 10px;
+        font-size: 12px;
         font-family: inherit;
-        width: 100%;
-        resize: vertical;
-        min-height: 80px;
-    }
-    .guestbook textarea:disabled { background: var(--gray-100); cursor: not-allowed; }
-    .guestbook button {
+        color: var(--gray-900);
         background: var(--white);
+    }
+    .diary-write-box textarea {
+        min-height: 90px;
+        resize: vertical;
+    }
+    .diary-login-box button,
+    .diary-write-actions button {
         border: 1px solid var(--gray-300);
-        padding: 7px 18px;
+        background: var(--white);
         color: var(--gray-700);
+        font-size: 12px;
+        padding: 6px 14px;
         cursor: pointer;
-        font-size: 12px;
         letter-spacing: 0.5px;
-        align-self: flex-end;
-        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     }
-    .guestbook button:hover { background: var(--accent); border-color: var(--accent); color: var(--white); }
-    .guestbook button:disabled { opacity: 0.5; cursor: not-allowed; background: var(--white); color: var(--gray-700); border-color: var(--gray-300); }
+    .diary-login-box button:hover,
+    .diary-write-actions button:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--white);
+    }
+    .diary-write-actions {
+        display: flex;
+        gap: 8px;
+    }
 
-    .status-msg { font-size: 11px; color: var(--gray-500); min-height: 14px; }
-    .status-msg.locked { color: #b3554a; font-weight: bold; }
-
-    .entry-list { list-style: none; border-top: 1px solid var(--gray-200); }
-    .entry {
-        padding: 10px 2px;
+    .diary-list {
+        list-style: none;
+    }
+    .diary-item {
         border-bottom: 1px solid var(--gray-200);
+    }
+    .diary-item:last-child { border-bottom: none; }
+    .diary-item-title {
+        padding: 12px 14px;
+        font-size: 13px;
+        color: var(--gray-900);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    .diary-item-title:hover { background: var(--gray-50); }
+    .diary-item-date {
+        font-size: 10px;
+        color: var(--gray-300);
+        white-space: nowrap;
+    }
+    .diary-item-body {
+        display: none;
+        padding: 0 14px 16px;
+    }
+    .diary-item.open .diary-item-body { display: block; }
+    .diary-item-content {
         font-size: 12px;
         color: var(--gray-700);
-        word-break: break-all;
-        line-height: 1.6;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        margin-bottom: 12px;
     }
-    .entry .name { color: var(--gray-900); font-weight: bold; margin-right: 4px; }
-    .entry-empty { padding: 16px 2px; font-size: 12px; color: var(--gray-300); text-align: center; }
+    .diary-reactions {
+        display: flex;
+        gap: 14px;
+    }
+    .reaction-btn {
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 15px;
+        color: var(--gray-500);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-family: inherit;
+    }
+    .reaction-btn .count {
+        font-size: 11px;
+        color: var(--gray-500);
+    }
+    .reaction-btn[disabled] {
+        opacity: 0.45;
+        cursor: default;
+    }
+    .diary-empty {
+        padding: 16px 14px;
+        font-size: 12px;
+        color: var(--gray-300);
+        text-align: center;
+    }
+
+    /* ===== 7. 푸터 ===== */
+    footer {
+        text-align: center;
+        font-size: 10px;
+        color: var(--gray-300);
+        padding: 22px 0 20px;
+        letter-spacing: 0.5px;
+    }
+
+    /* ===== 모바일 대응 ===== */
+    @media (max-width: 480px) {
+        body { padding: 0; }
+        .site { max-width: 100%; border-left: none; border-right: none; }
+        .intro { padding: 22px 18px 14px; }
+        .middle-photo, .player { margin-left: 18px; margin-right: 18px; }
+        .player { flex-wrap: wrap; }
+        .player .controls { font-size: 18px; }
+    }
 </style>
 </head>
+
 <body>
 
 <div class="site">
-    <div class="header">
-        <a class="back-link" href="index.html">← 홈</a>
-        + 방명록
+
+    <!-- 1. 소개 -->
+    <div class="intro">
+        <p class="sub">여기에 소개 문구를 적어주세요</p>
+        <p class="env-note">이 사이트는 데스크탑 환경에 최적화 되어 있습니다</p>
     </div>
 
-    <div class="guestbook">
-        <div class="guestbook-form">
-            <textarea id="msg" placeholder="♬.."></textarea>
-            <div class="status-msg" id="statusMsg"></div>
-            <button id="submitBtn" type="button">등록하기</button>
+    <!-- 2. 공지 한 줄 -->
+    <div class="notice-wrap">
+        <span class="notice-track">(2026.08.30) 사이트 리뉴얼 중...</span>
+    </div>
+
+    <div class="dots">• • • • • • • • • •</div>
+
+    <!-- 4. 중간 이미지 -->
+    <div class="middle-photo">
+        <img src="https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/sign/akfus/tofhwjwkd.jpg?token=eyJraWQiOiI5MWQ0NGMxYy0yMWJhLTRlN2QtYjM1Mi01NWYwYmI0NzNkODEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJha2Z1cy90b2Zod2p3a2QuanBnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODA3NDczMywiZXhwIjoxODE5NjEwNzMzfQ.smrCx9kQtuLN-DDXtbrFGvOPXWLPMZ16MwQtH-G3_DY" alt="">
+    </div>
+
+    <!-- 5. 음악 플레이어 -->
+    <div class="player">
+        <div class="cover">
+            <!-- 앨범아트 넣고 싶으면 여기에 <img src="..." alt=""> -->
         </div>
-        <ul class="entry-list" id="guestbook-list">
-            <li class="entry-empty">불러오는 중...</li>
+        <div class="meta">
+            <div class="status" id="track-title">SKool julian</div>
+            <div class="controls">
+                <span id="btn-prev">⏮</span>
+                <span id="btn-play">▷</span>
+                <span id="btn-next">⏭</span>
+            </div>
+        </div>
+    </div>
+    <audio id="bgm" preload="none"></audio>
+
+    <!-- 6. 방명록 -->
+    <div class="guest">
+        <a href="guest.html">+ 방명록</a>
+    </div>
+
+    <!-- 6-2. 일기 (사이트 주인만 글쓰기 가능, 방문자는 표정 반응만) -->
+    <div class="diary">
+        <div class="diary-header">
+            <span>+ 일기</span>
+            <span class="diary-login-link" id="diary-login-toggle" title="주인만">✎</span>
+        </div>
+
+        <div class="diary-login-box" id="diary-login-box" style="display:none;">
+            <input type="email" id="diary-email" placeholder="이메일">
+            <input type="password" id="diary-password" placeholder="비밀번호">
+            <button id="diary-login-btn" type="button">로그인</button>
+        </div>
+
+        <div class="diary-write-box" id="diary-write-box" style="display:none;">
+            <input type="text" id="diary-title-input" placeholder="제목">
+            <textarea id="diary-content-input" placeholder="내용을 적어주세요"></textarea>
+            <div class="diary-write-actions">
+                <button id="diary-submit-btn" type="button">등록</button>
+                <button id="diary-logout-btn" type="button">로그아웃</button>
+            </div>
+        </div>
+
+        <ul class="diary-list" id="diary-list">
+            <li class="diary-empty">불러오는 중...</li>
         </ul>
     </div>
+
+    <!-- 7. 푸터 -->
+    <footer>(C) 2026. 붐이 홈피. all rights reserved.</footer>
+
 </div>
 
+<script>
+    const tracks = [
+        { title: "SKool julian", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/Skool%20Julian.mp3" },
+        { title: "비 안녕이란 말 대신이야", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/RAIN%20SAYGOODBYE.mp3" }
+    ];
+
+    let current = 0;
+    let isPlaying = false;
+
+    const audio = document.getElementById('bgm');
+    const titleEl = document.getElementById('track-title');
+    const playBtn = document.getElementById('btn-play');
+
+    function loadTrack(index, autoplay) {
+        current = (index + tracks.length) % tracks.length;
+        audio.src = tracks[current].src;
+        titleEl.textContent = tracks[current].title;
+        if (autoplay) {
+            audio.play().then(() => {
+                isPlaying = true;
+                playBtn.textContent = '⏸';
+            }).catch(() => {
+                isPlaying = false;
+                playBtn.textContent = '▷';
+            });
+        } else {
+            isPlaying = false;
+            playBtn.textContent = '▷';
+        }
+    }
+
+    playBtn.addEventListener('click', () => {
+        if (!audio.src) {
+            loadTrack(current, true);
+            return;
+        }
+        if (isPlaying) {
+            audio.pause();
+            isPlaying = false;
+            playBtn.textContent = '▷';
+        } else {
+            audio.play().then(() => {
+                isPlaying = true;
+                playBtn.textContent = '⏸';
+            });
+        }
+    });
+
+    document.getElementById('btn-prev').addEventListener('click', () => {
+        loadTrack(current - 1, true);
+    });
+
+    document.getElementById('btn-next').addEventListener('click', () => {
+        loadTrack(current + 1, true);
+    });
+
+    audio.addEventListener('ended', () => {
+        loadTrack(current + 1, true);
+    });
+
+    // 초기 상태: 제목만 표시, 재생은 사용자가 버튼을 눌러야 시작됨 (브라우저 자동재생 정책)
+    titleEl.textContent = tracks[current].title;
+</script>
+
+<!-- ============================================================
+     일기 기능: Supabase 연동
+     아래 두 값만 채워주세요. (Supabase 대시보드 > Settings > API)
+     ============================================================ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    const supabaseUrl = "https://nlvkfrekpundyinhgtzo.supabase.co";
-    const supabaseKey = "sb_publishable_DQs8rT0Ff8WbemjjVSuV7w_DavNXXO3";
-    const client = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const SUPABASE_URL = 'https://nlvkfrekpundyinhgtzo.supabase.co'; // 프로젝트 URL
+    const SUPABASE_ANON_KEY = 'sb_publishable_DQs8rT0Ff8WbemjjVSuV7w_DavNXXO3';
 
-    // 방문자 UUID (localStorage, 메인 사이트 일기 반응과 동일한 방식/키 공유)
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const REACTIONS = [
+        { type: 'heart', emoji: '❤️' },
+        { type: 'happy', emoji: '😊' },
+        { type: 'laugh', emoji: '😆' },
+        { type: 'sad',   emoji: '😢' },
+        { type: 'tear',  emoji: '😭' }
+    ];
+
+    const diaryList = document.getElementById('diary-list');
+    const loginToggle = document.getElementById('diary-login-toggle');
+    const loginBox = document.getElementById('diary-login-box');
+    const writeBox = document.getElementById('diary-write-box');
+    const loginBtn = document.getElementById('diary-login-btn');
+    const logoutBtn = document.getElementById('diary-logout-btn');
+    const submitBtn = document.getElementById('diary-submit-btn');
+
+    let isOwner = false;
+
+    // 방명록과 동일한 방식: localStorage에 visitor_id 저장 (없으면 새로 발급)
     function getVisitorId() {
-        let id = localStorage.getItem("visitor_id");
+        let id = localStorage.getItem('visitor_id');
         if (!id) {
             id = crypto.randomUUID();
-            localStorage.setItem("visitor_id", id);
+            localStorage.setItem('visitor_id', id);
         }
         return id;
     }
     const visitorId = getVisitorId();
 
-    // 도배 방지 (3회 등록 시 24시간 잠금)
-    const SPAM_LIMIT = 3;
-    const LOCK_DURATION = 24 * 60 * 60 * 1000;
-
-    function getPostCount() { return parseInt(localStorage.getItem("post_count") || "0", 10); }
-    function setPostCount(n) { localStorage.setItem("post_count", String(n)); }
-    function getLockUntil() { return parseInt(localStorage.getItem("lock_until") || "0", 10); }
-    function setLockUntil(ts) { localStorage.setItem("lock_until", String(ts)); }
-
-    function checkAndApplyLock() {
-        const lockUntil = getLockUntil();
-        const now = Date.now();
-        const submitBtn = document.getElementById("submitBtn");
-        const msgEl = document.getElementById("msg");
-        const statusMsg = document.getElementById("statusMsg");
-
-        if (lockUntil && now < lockUntil) {
-            submitBtn.disabled = true;
-            msgEl.disabled = true;
-            statusMsg.classList.add("locked");
-            statusMsg.textContent = "도배 방지로 인해 등록이 제한되었습니다.";
-            return true;
-        } else {
-            if (lockUntil && now >= lockUntil) {
-                setLockUntil(0);
-                setPostCount(0);
-            }
-            submitBtn.disabled = false;
-            msgEl.disabled = false;
-            statusMsg.classList.remove("locked");
-            if (statusMsg.textContent.includes("도배 방지")) statusMsg.textContent = "";
-            return false;
-        }
-    }
-
-    let isSubmitting = false;
-
-    async function addMessage() {
-        if (isSubmitting) return;
-        if (checkAndApplyLock()) return;
-
-        const msgEl = document.getElementById("msg");
-        const submitBtn = document.getElementById("submitBtn");
-        const statusMsg = document.getElementById("statusMsg");
-        const msg = msgEl.value.trim();
-
-        if (!msg) {
-            statusMsg.textContent = "메시지를 입력해주세요!";
-            return;
-        }
-
-        isSubmitting = true;
-        submitBtn.disabled = true;
-        statusMsg.textContent = "등록 중...";
-
-        let ipAddress = null;
+    let visitorIp = null;
+    async function getVisitorIp() {
+        if (visitorIp) return visitorIp;
         try {
-            const ipRes = await fetch("https://api.ipify.org?format=json");
-            const ipData = await ipRes.json();
-            ipAddress = ipData.ip;
+            const res = await fetch('https://api.ipify.org?format=json');
+            const data = await res.json();
+            visitorIp = data.ip;
         } catch (e) {
-            console.log("IP 조회 실패:", e);
+            console.log('IP 조회 실패:', e);
         }
-
-        const { error } = await client
-            .from("guestbook")
-            .insert([{
-                nickname: "익명",
-                message: msg,
-                visitor_id: visitorId,
-                ip_address: ipAddress
-            }]);
-
-        if (error) {
-            console.log(error);
-            statusMsg.textContent = "등록 실패 😢 다시 시도해주세요.";
-            isSubmitting = false;
-            submitBtn.disabled = false;
-            return;
-        }
-
-        const newCount = getPostCount() + 1;
-        setPostCount(newCount);
-
-        msgEl.value = "";
-        isSubmitting = false;
-
-        if (newCount >= SPAM_LIMIT) {
-            setLockUntil(Date.now() + LOCK_DURATION);
-            checkAndApplyLock();
-        } else {
-            statusMsg.textContent = "등록 완료! 🎉";
-            submitBtn.disabled = false;
-            setTimeout(() => { if (!checkAndApplyLock()) statusMsg.textContent = ""; }, 2000);
-        }
-
-        loadMessages();
+        return visitorIp;
     }
 
-    document.getElementById("submitBtn").addEventListener("click", addMessage);
-    document.getElementById("msg").addEventListener("keydown", function (e) {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            addMessage();
-        }
-    });
+    function formatDate(iso) {
+        const d = new Date(iso);
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+    }
 
-    async function loadMessages() {
-        const { data } = await client
-            .from("guestbook")
-            .select("*")
-            .order("id", { ascending: false });
-        const box = document.getElementById("guestbook-list");
-        box.innerHTML = "";
-        if (!data || data.length === 0) {
-            box.innerHTML = `<li class="entry-empty">아직 남겨진 방명록이 없어요</li>`;
+    async function loadDiary() {
+        const { data: posts, error: postErr } = await sb
+            .from('diary_posts')
+            .select('id, title, content, created_at')
+            .order('created_at', { ascending: false });
+
+        if (postErr) {
+            diaryList.innerHTML = `<li class="diary-empty">일기를 불러오지 못했어요</li>`;
+            console.error(postErr);
             return;
         }
-        data.forEach(row => {
-            const li = document.createElement("li");
-            li.className = "entry";
-            li.innerHTML = `<span class="name">${row.nickname || "익명"}</span>: ${row.message}`;
-            box.appendChild(li);
+
+        if (!posts || posts.length === 0) {
+            diaryList.innerHTML = `<li class="diary-empty">아직 쓴 일기가 없어요</li>`;
+            return;
+        }
+
+        const { data: reactions } = await sb
+            .from('diary_reactions')
+            .select('post_id, reaction_type');
+
+        const counts = {};
+        (reactions || []).forEach(r => {
+            counts[r.post_id] = counts[r.post_id] || {};
+            counts[r.post_id][r.reaction_type] = (counts[r.post_id][r.reaction_type] || 0) + 1;
+        });
+
+        diaryList.innerHTML = '';
+
+        posts.forEach(post => {
+            const li = document.createElement('li');
+            li.className = 'diary-item';
+
+            const titleRow = document.createElement('div');
+            titleRow.className = 'diary-item-title';
+            titleRow.innerHTML = `<span>${escapeHtml(post.title)}</span><span class="diary-item-date">${formatDate(post.created_at)}</span>`;
+
+            const body = document.createElement('div');
+            body.className = 'diary-item-body';
+
+            const content = document.createElement('div');
+            content.className = 'diary-item-content';
+            content.textContent = post.content;
+
+            const reactionsRow = document.createElement('div');
+            reactionsRow.className = 'diary-reactions';
+
+            REACTIONS.forEach(r => {
+                const btn = document.createElement('button');
+                btn.className = 'reaction-btn';
+                const count = (counts[post.id] && counts[post.id][r.type]) || 0;
+                btn.innerHTML = `${r.emoji} <span class="count">${count}</span>`;
+
+                btn.addEventListener('click', async () => {
+                    btn.disabled = true;
+                    const ip = await getVisitorIp();
+                    const current = parseInt(btn.querySelector('.count').textContent, 10) || 0;
+                    const { error } = await sb.from('diary_reactions').insert({
+                        post_id: post.id,
+                        reaction_type: r.type,
+                        visitor_id: visitorId,
+                        ip_address: ip
+                    });
+                    btn.disabled = false;
+                    if (!error) {
+                        btn.innerHTML = `${r.emoji} <span class="count">${current + 1}</span>`;
+                    } else {
+                        console.error(error);
+                    }
+                });
+
+                reactionsRow.appendChild(btn);
+            });
+
+            body.appendChild(content);
+            body.appendChild(reactionsRow);
+
+            titleRow.addEventListener('click', () => {
+                li.classList.toggle('open');
+            });
+
+            li.appendChild(titleRow);
+            li.appendChild(body);
+            diaryList.appendChild(li);
         });
     }
 
-    loadMessages();
-    checkAndApplyLock();
-    setInterval(checkAndApplyLock, 60 * 1000);
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    loginToggle.addEventListener('click', () => {
+        if (isOwner) {
+            writeBox.style.display = writeBox.style.display === 'none' ? 'flex' : 'none';
+        } else {
+            loginBox.style.display = loginBox.style.display === 'none' ? 'flex' : 'none';
+        }
+    });
+
+    loginBtn.addEventListener('click', async () => {
+        const email = document.getElementById('diary-email').value.trim();
+        const password = document.getElementById('diary-password').value;
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) {
+            alert('로그인에 실패했어요: ' + error.message);
+            return;
+        }
+        isOwner = true;
+        loginBox.style.display = 'none';
+        writeBox.style.display = 'flex';
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+        await sb.auth.signOut();
+        isOwner = false;
+        writeBox.style.display = 'none';
+    });
+
+    submitBtn.addEventListener('click', async () => {
+        const title = document.getElementById('diary-title-input').value.trim();
+        const content = document.getElementById('diary-content-input').value.trim();
+        if (!title || !content) {
+            alert('제목과 내용을 모두 적어주세요');
+            return;
+        }
+        const { error } = await sb.from('diary_posts').insert({ title, content });
+        if (error) {
+            alert('등록에 실패했어요: ' + error.message);
+            return;
+        }
+        document.getElementById('diary-title-input').value = '';
+        document.getElementById('diary-content-input').value = '';
+        loadDiary();
+    });
+
+    (async function initDiaryAuth() {
+        const { data } = await sb.auth.getSession();
+        if (data && data.session) {
+            isOwner = true;
+        }
+    })();
+
+    loadDiary();
 </script>
 
 </body>
