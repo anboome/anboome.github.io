@@ -16,7 +16,7 @@
    3. 구분선
    4. 중간 이미지
    5. 음악 플레이어 (곡 2개, prev/재생/next 실제 작동)
-   6. 방명록 링크
+   6. 방명록 (같은 페이지 안에서 펼쳐짐, BGM 안 끊김)
    6-2. 일기 (Supabase 연동, 주인만 작성 / 방문자는 표정 반응만)
    7. 카피라이트
 
@@ -96,7 +96,7 @@
     }
     .intro .sub {
         font-size: 13px;
-        color: var(--accent);
+        color: var(--gray-500);
         line-height: 1.8;
     }
     .intro .env-note {
@@ -107,16 +107,18 @@
 
     /* ===== 2. 공지 한 줄 ===== */
     .notice-wrap {
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: visible;
         white-space: nowrap;
-        padding: 8px 0;
+        padding: 10px 0;
         border-bottom: 1px solid var(--gray-200);
         background: var(--gray-50);
     }
     .notice-track {
         display: inline-block;
         padding-left: 100%;
-        font-size: 11px;
+        font-size: 12px;
+        line-height: 1.6;
         color: var(--gray-700);
         animation: marquee 16s linear infinite;
     }
@@ -197,26 +199,79 @@
         user-select: none;
     }
 
-    /* ===== 6. 방명록 버튼 ===== */
+    /* ===== 6. 방명록 (같은 페이지 안에서 펼쳐짐) ===== */
     .guest {
-        text-align: center;
-        margin: 22px 0 6px;
+        margin: 22px 32px 0;
+        border: 1px solid var(--gray-200);
     }
-    .guest a {
-        display: inline-block;
-        padding: 7px 20px;
-        border: 1px solid var(--gray-300);
-        color: var(--gray-700);
+    .guest-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
         font-size: 12px;
-        text-decoration: none;
         letter-spacing: 1px;
+        color: var(--gray-700);
+        cursor: pointer;
+        user-select: none;
+    }
+    .guest-header:hover { color: var(--accent); }
+
+    .guest-panel {
+        display: none;
+        padding: 14px;
+    }
+    .guest-panel.open { display: block; }
+
+    .guest-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+    .guest-form textarea {
+        background: var(--white);
+        border: 1px solid var(--gray-300);
+        color: var(--gray-900);
+        padding: 10px;
+        font-size: 13px;
+        font-family: inherit;
+        width: 100%;
+        resize: vertical;
+        min-height: 70px;
+    }
+    .guest-form textarea:disabled { background: var(--gray-100); cursor: not-allowed; }
+    .guest-form button {
+        background: var(--white);
+        border: 1px solid var(--gray-300);
+        padding: 7px 18px;
+        color: var(--gray-700);
+        cursor: pointer;
+        font-size: 12px;
+        font-family: inherit;
+        letter-spacing: 0.5px;
+        align-self: flex-end;
         transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     }
-    .guest a:hover {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: var(--white);
+    .guest-form button:hover { background: var(--accent); border-color: var(--accent); color: var(--white); }
+    .guest-form button:disabled { opacity: 0.5; cursor: not-allowed; background: var(--white); color: var(--gray-700); border-color: var(--gray-300); }
+
+    .guest-status { font-size: 11px; color: var(--gray-500); min-height: 14px; }
+    .guest-status.locked { color: #b3554a; font-weight: bold; }
+
+    .guest-list { list-style: none; border-top: 1px solid var(--gray-200); }
+    .guest-entry {
+        padding: 10px 2px;
+        border-bottom: 1px solid var(--gray-200);
+        font-size: 12px;
+        color: var(--gray-700);
+        word-break: break-all;
+        line-height: 1.6;
     }
+    .guest-entry .name { color: var(--gray-900); font-weight: bold; margin-right: 4px; }
+    .guest-entry-empty { padding: 16px 2px; font-size: 12px; color: var(--gray-300); text-align: center; }
 
     /* ===== 6-2. 일기 ===== */
     .diary {
@@ -362,7 +417,7 @@
         body { padding: 0; }
         .site { max-width: 100%; border-left: none; border-right: none; }
         .intro { padding: 22px 18px 14px; }
-        .middle-photo, .player { margin-left: 18px; margin-right: 18px; }
+        .middle-photo, .player, .guest, .diary { margin-left: 18px; margin-right: 18px; }
         .player { flex-wrap: wrap; }
         .player .controls { font-size: 18px; }
     }
@@ -399,17 +454,27 @@
         <div class="meta">
             <div class="status" id="track-title">SKool julian</div>
             <div class="controls">
-                <span id="btn-prev">⏮</span>
+                <span id="btn-prev">≪</span>
                 <span id="btn-play">▷</span>
-                <span id="btn-next">⏭</span>
+                <span id="btn-next">≫</span>
             </div>
         </div>
     </div>
     <audio id="bgm" preload="none"></audio>
 
-    <!-- 6. 방명록 -->
+    <!-- 6. 방명록: 새 페이지로 안 가고 같은 화면에서 펼쳐짐 (BGM 유지) -->
     <div class="guest">
-        <a href="guest.html" target="_blank" rel="noopener">+ 방명록</a>
+        <div class="guest-header" id="guest-toggle">+ 방명록</div>
+        <div class="guest-panel" id="guest-panel">
+            <div class="guest-form">
+                <textarea id="guest-msg" placeholder="♬.."></textarea>
+                <div class="guest-status" id="guest-status-msg"></div>
+                <button id="guest-submit-btn" type="button">등록하기</button>
+            </div>
+            <ul class="guest-list" id="guest-list">
+                <li class="guest-entry-empty">불러오는 중...</li>
+            </ul>
+        </div>
     </div>
 
     <!-- 6-2. 일기 (사이트 주인만 글쓰기 가능, 방문자는 표정 반응만) -->
@@ -446,8 +511,8 @@
 
 <script>
     const tracks = [
-        { title: "SKool의 julian..♪ 피자를 좋아하는 네게 사랑을 담아 예쁘게 만들어야지", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/Skool%20Julian.mp3" },
-        { title: "비의 안녕이란 말 대신..♪", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/RAIN%20SAYGOODBYE.mp3" }
+        { title: "SKool의 julian 피자를 좋아하는 네게 사랑을 담아 예쁘게 만들어야지", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/Skool%20Julian.mp3" },
+        { title: "비의 안녕이란 말 대신", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/RAIN%20SAYGOODBYE.mp3" }
     ];
 
     let current = 0;
@@ -523,8 +588,7 @@
 </script>
 
 <!-- ============================================================
-     일기 기능: Supabase 연동
-     아래 두 값만 채워주세요. (Supabase 대시보드 > Settings > API)
+     방명록 + 일기 기능: Supabase 연동 (같은 클라이언트 공유)
      ============================================================ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -533,25 +597,7 @@
 
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const REACTIONS = [
-        { type: 'heart', emoji: '❤️' },
-        { type: 'happy', emoji: '😊' },
-        { type: 'laugh', emoji: '😆' },
-        { type: 'sad',   emoji: '😢' },
-        { type: 'tear',  emoji: '😭' }
-    ];
-
-    const diaryList = document.getElementById('diary-list');
-    const loginToggle = document.getElementById('diary-login-toggle');
-    const loginBox = document.getElementById('diary-login-box');
-    const writeBox = document.getElementById('diary-write-box');
-    const loginBtn = document.getElementById('diary-login-btn');
-    const logoutBtn = document.getElementById('diary-logout-btn');
-    const submitBtn = document.getElementById('diary-submit-btn');
-
-    let isOwner = false;
-
-    // 방명록과 동일한 방식: localStorage에 visitor_id 저장 (없으면 새로 발급)
+    // 방문자 UUID (localStorage, 방명록/일기 반응 공통으로 사용)
     function getVisitorId() {
         let id = localStorage.getItem('visitor_id');
         if (!id) {
@@ -574,6 +620,156 @@
         }
         return visitorIp;
     }
+
+    /* ===================== 방명록 ===================== */
+    const guestToggle = document.getElementById('guest-toggle');
+    const guestPanel = document.getElementById('guest-panel');
+    const guestMsgEl = document.getElementById('guest-msg');
+    const guestSubmitBtn = document.getElementById('guest-submit-btn');
+    const guestStatusMsg = document.getElementById('guest-status-msg');
+    const guestListEl = document.getElementById('guest-list');
+
+    let guestLoaded = false;
+
+    guestToggle.addEventListener('click', () => {
+        guestPanel.classList.toggle('open');
+        if (guestPanel.classList.contains('open') && !guestLoaded) {
+            guestLoaded = true;
+            loadGuestMessages();
+        }
+    });
+
+    const GUEST_SPAM_LIMIT = 3;
+    const GUEST_LOCK_DURATION = 24 * 60 * 60 * 1000;
+
+    function getGuestPostCount() { return parseInt(localStorage.getItem('post_count') || '0', 10); }
+    function setGuestPostCount(n) { localStorage.setItem('post_count', String(n)); }
+    function getGuestLockUntil() { return parseInt(localStorage.getItem('lock_until') || '0', 10); }
+    function setGuestLockUntil(ts) { localStorage.setItem('lock_until', String(ts)); }
+
+    function checkAndApplyGuestLock() {
+        const lockUntil = getGuestLockUntil();
+        const now = Date.now();
+
+        if (lockUntil && now < lockUntil) {
+            guestSubmitBtn.disabled = true;
+            guestMsgEl.disabled = true;
+            guestStatusMsg.classList.add('locked');
+            guestStatusMsg.textContent = '도배 방지로 인해 등록이 제한되었습니다.';
+            return true;
+        } else {
+            if (lockUntil && now >= lockUntil) {
+                setGuestLockUntil(0);
+                setGuestPostCount(0);
+            }
+            guestSubmitBtn.disabled = false;
+            guestMsgEl.disabled = false;
+            guestStatusMsg.classList.remove('locked');
+            if (guestStatusMsg.textContent.includes('도배 방지')) guestStatusMsg.textContent = '';
+            return false;
+        }
+    }
+
+    let guestSubmitting = false;
+
+    async function addGuestMessage() {
+        if (guestSubmitting) return;
+        if (checkAndApplyGuestLock()) return;
+
+        const msg = guestMsgEl.value.trim();
+        if (!msg) {
+            guestStatusMsg.textContent = '메시지를 입력해주세요!';
+            return;
+        }
+
+        guestSubmitting = true;
+        guestSubmitBtn.disabled = true;
+        guestStatusMsg.textContent = '등록 중...';
+
+        const ip = await getVisitorIp();
+
+        const { error } = await sb
+            .from('guestbook')
+            .insert([{
+                nickname: '익명',
+                message: msg,
+                visitor_id: visitorId,
+                ip_address: ip
+            }]);
+
+        if (error) {
+            console.log(error);
+            guestStatusMsg.textContent = '등록 실패 😢 다시 시도해주세요.';
+            guestSubmitting = false;
+            guestSubmitBtn.disabled = false;
+            return;
+        }
+
+        const newCount = getGuestPostCount() + 1;
+        setGuestPostCount(newCount);
+
+        guestMsgEl.value = '';
+        guestSubmitting = false;
+
+        if (newCount >= GUEST_SPAM_LIMIT) {
+            setGuestLockUntil(Date.now() + GUEST_LOCK_DURATION);
+            checkAndApplyGuestLock();
+        } else {
+            guestStatusMsg.textContent = '등록 완료! 🎉';
+            guestSubmitBtn.disabled = false;
+            setTimeout(() => { if (!checkAndApplyGuestLock()) guestStatusMsg.textContent = ''; }, 2000);
+        }
+
+        loadGuestMessages();
+    }
+
+    guestSubmitBtn.addEventListener('click', addGuestMessage);
+    guestMsgEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            addGuestMessage();
+        }
+    });
+
+    async function loadGuestMessages() {
+        const { data } = await sb
+            .from('guestbook')
+            .select('*')
+            .order('id', { ascending: false });
+        guestListEl.innerHTML = '';
+        if (!data || data.length === 0) {
+            guestListEl.innerHTML = `<li class="guest-entry-empty">아직 남겨진 방명록이 없어요</li>`;
+            return;
+        }
+        data.forEach(row => {
+            const li = document.createElement('li');
+            li.className = 'guest-entry';
+            li.innerHTML = `<span class="name">${row.nickname || '익명'}</span>: ${row.message}`;
+            guestListEl.appendChild(li);
+        });
+    }
+
+    checkAndApplyGuestLock();
+    setInterval(checkAndApplyGuestLock, 60 * 1000);
+
+    /* ===================== 일기 ===================== */
+    const REACTIONS = [
+        { type: 'heart', emoji: '❤️' },
+        { type: 'happy', emoji: '😊' },
+        { type: 'laugh', emoji: '😆' },
+        { type: 'sad',   emoji: '😢' },
+        { type: 'tear',  emoji: '😭' }
+    ];
+
+    const diaryList = document.getElementById('diary-list');
+    const loginToggle = document.getElementById('diary-login-toggle');
+    const loginBox = document.getElementById('diary-login-box');
+    const writeBox = document.getElementById('diary-write-box');
+    const loginBtn = document.getElementById('diary-login-btn');
+    const logoutBtn = document.getElementById('diary-logout-btn');
+    const submitBtn = document.getElementById('diary-submit-btn');
+
+    let isOwner = false;
 
     function formatDate(iso) {
         const d = new Date(iso);
@@ -636,7 +832,7 @@
                 btn.addEventListener('click', async () => {
                     btn.disabled = true;
                     const ip = await getVisitorIp();
-                    const current = parseInt(btn.querySelector('.count').textContent, 10) || 0;
+                    const cur = parseInt(btn.querySelector('.count').textContent, 10) || 0;
                     const { error } = await sb.from('diary_reactions').insert({
                         post_id: post.id,
                         reaction_type: r.type,
@@ -645,7 +841,7 @@
                     });
                     btn.disabled = false;
                     if (!error) {
-                        btn.innerHTML = `${r.emoji} <span class="count">${current + 1}</span>`;
+                        btn.innerHTML = `${r.emoji} <span class="count">${cur + 1}</span>`;
                     } else {
                         console.error(error);
                     }
