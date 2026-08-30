@@ -258,6 +258,35 @@
     .guest-form button:hover { background: var(--accent); border-color: var(--accent); color: var(--white); }
     .guest-form button:disabled { opacity: 0.5; cursor: not-allowed; background: var(--white); color: var(--gray-700); border-color: var(--gray-300); }
 
+    .guest-color-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .guest-color-row label {
+        font-size: 11px;
+        color: var(--gray-500);
+        white-space: nowrap;
+    }
+    .guest-color-row input[type="color"] {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 1px solid var(--gray-300);
+        background: var(--white);
+        cursor: pointer;
+    }
+    .guest-color-row input[type="text"] {
+        flex: 1;
+        border: 1px solid var(--gray-300);
+        padding: 6px 8px;
+        font-size: 12px;
+        font-family: inherit;
+        color: var(--gray-900);
+        background: var(--white);
+        text-transform: lowercase;
+    }
+
     .guest-status { font-size: 11px; color: var(--gray-500); min-height: 14px; }
     .guest-status.locked { color: #b3554a; font-weight: bold; }
 
@@ -443,7 +472,7 @@
 
     <!-- 4. 중간 이미지 -->
     <div class="middle-photo">
-        <img src="https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/sign/akfus/tofhwjwkd.jpg?token=eyJraWQiOiI5MWQ0NGMxYy0yMWJhLTRlN2QtYjM1Mi01NWYwYmI0NzNkODEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJha2Z1cy90b2Zod2p3a2QuanBnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODA3NDczMywiZXhwIjoxODE5NjEwNzMzfQ.smrCx9kQtuLN-DDXtbrFGvOPXWLPMZ16MwQtH-G3_DY" alt="">
+        <img src="https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/sign/akfus/tofhwjwkd%20(1).jpg?token=eyJraWQiOiI5MWQ0NGMxYy0yMWJhLTRlN2QtYjM1Mi01NWYwYmI0NzNkODEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJha2Z1cy90b2Zod2p3a2QgKDEpLmpwZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgwODIxODIsImV4cCI6MTgxOTYxODE4Mn0.0Ute_eNqBrukhq1T3-xVM8lAmK1ESMxYbrJRICG1Ceg" alt="">
     </div>
 
     <!-- 5. 음악 플레이어 -->
@@ -468,6 +497,11 @@
         <div class="guest-panel" id="guest-panel">
             <div class="guest-form">
                 <textarea id="guest-msg" placeholder="♬.."></textarea>
+                <div class="guest-color-row">
+                    <label for="guest-color-hex">글자색</label>
+                    <input type="color" id="guest-color-picker" value="#555555">
+                    <input type="text" id="guest-color-hex" placeholder="#ff66aa" maxlength="7">
+                </div>
                 <div class="guest-status" id="guest-status-msg"></div>
                 <button id="guest-submit-btn" type="button">등록하기</button>
             </div>
@@ -529,7 +563,7 @@
         if (autoplay) {
             audio.play().then(() => {
                 isPlaying = true;
-                playBtn.textContent = '⏸';
+                playBtn.textContent = '‖';
             }).catch(() => {
                 isPlaying = false;
                 playBtn.textContent = '▷';
@@ -552,7 +586,7 @@
         } else {
             audio.play().then(() => {
                 isPlaying = true;
-                playBtn.textContent = '⏸';
+                playBtn.textContent = '‖';
             });
         }
     });
@@ -574,12 +608,12 @@
     loadTrack(current, false);
     audio.play().then(() => {
         isPlaying = true;
-        playBtn.textContent = '⏸';
+        playBtn.textContent = '‖';
     }).catch(() => {
         const startOnFirstClick = () => {
             audio.play().then(() => {
                 isPlaying = true;
-                playBtn.textContent = '⏸';
+                playBtn.textContent = '‖';
             }).catch(() => {});
             document.removeEventListener('click', startOnFirstClick);
         };
@@ -625,9 +659,31 @@
     const guestToggle = document.getElementById('guest-toggle');
     const guestPanel = document.getElementById('guest-panel');
     const guestMsgEl = document.getElementById('guest-msg');
+    const guestColorPicker = document.getElementById('guest-color-picker');
+    const guestColorHex = document.getElementById('guest-color-hex');
     const guestSubmitBtn = document.getElementById('guest-submit-btn');
     const guestStatusMsg = document.getElementById('guest-status-msg');
     const guestListEl = document.getElementById('guest-list');
+
+    const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
+    guestColorPicker.addEventListener('input', () => {
+        guestColorHex.value = guestColorPicker.value;
+    });
+    guestColorHex.addEventListener('input', () => {
+        let v = guestColorHex.value.trim();
+        if (v && !v.startsWith('#')) v = '#' + v;
+        if (HEX_COLOR_RE.test(v)) {
+            guestColorPicker.value = v;
+        }
+    });
+
+    function getValidGuestColor() {
+        let v = guestColorHex.value.trim();
+        if (!v) return null;
+        if (!v.startsWith('#')) v = '#' + v;
+        return HEX_COLOR_RE.test(v) ? v : null;
+    }
 
     let guestLoaded = false;
 
@@ -687,6 +743,7 @@
         guestStatusMsg.textContent = '등록 중...';
 
         const ip = await getVisitorIp();
+        const color = getValidGuestColor();
 
         const { error } = await sb
             .from('guestbook')
@@ -694,7 +751,8 @@
                 nickname: '익명',
                 message: msg,
                 visitor_id: visitorId,
-                ip_address: ip
+                ip_address: ip,
+                color: color
             }]);
 
         if (error) {
@@ -709,6 +767,8 @@
         setGuestPostCount(newCount);
 
         guestMsgEl.value = '';
+        guestColorHex.value = '';
+        guestColorPicker.value = '#555555';
         guestSubmitting = false;
 
         if (newCount >= GUEST_SPAM_LIMIT) {
@@ -744,7 +804,10 @@
         data.forEach(row => {
             const li = document.createElement('li');
             li.className = 'guest-entry';
-            li.innerHTML = `<span class="name">${row.nickname || '익명'}</span>: ${row.message}`;
+            const safeColor = (row.color && HEX_COLOR_RE.test(row.color)) ? row.color : null;
+            const msgHtml = escapeHtml(row.message);
+            const nameHtml = escapeHtml(row.nickname || '익명');
+            li.innerHTML = `<span class="name">${nameHtml}</span>: <span${safeColor ? ` style="color:${safeColor}"` : ''}>${msgHtml}</span>`;
             guestListEl.appendChild(li);
         });
     }
