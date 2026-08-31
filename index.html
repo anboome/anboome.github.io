@@ -15,7 +15,7 @@
    2. 공지사항 한 줄
    3. 구분선
    4. 중간 이미지
-   5. 음악 플레이어 (곡 2개, prev/재생/next 실제 작동)
+   5. 음악 플레이어 (곡 4개, 셔플 재생, prev/재생/next 실제 작동)
    6. 방명록 (같은 페이지 안에서 펼쳐짐, BGM 안 끊김)
    6-2. 일기 (Supabase 연동, 주인만 작성 / 방문자는 표정 반응만)
    7. 카피라이트
@@ -544,21 +544,47 @@
 </div>
 
 <script>
+    // 재생목록: 여기에 곡을 추가/삭제하면 자동으로 셔플 재생에 반영됩니다.
     const tracks = [
         { title: "SKool의 julian..♪ ", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/Skool%20Julian.mp3" },
-        { title: "비의 안녕이란 말 대신..♪", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/RAIN%20SAYGOODBYE.mp3" }
-      
+        { title: "비의 안녕이란 말 대신..♪", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/RAIN%20SAYGOODBYE.mp3" },
+        { title: "김채원의 confession..♪", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/KIM%20CHAEWON%20confession.mp3" },
+        { title: "kiss x3..♪", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/kiss%20x3.mp3" }
     ];
 
-    let current = 0;
     let isPlaying = false;
 
     const audio = document.getElementById('bgm');
     const titleEl = document.getElementById('track-title');
     const playBtn = document.getElementById('btn-play');
 
-    function loadTrack(index, autoplay) {
-        current = (index + tracks.length) % tracks.length;
+    /* ===== 셔플 재생 로직 =====
+       - playOrder: 곡 인덱스를 무작위로 섞은 배열 (한 순환)
+       - 한 순환이 끝나면 다시 섞되, 방금 들었던 마지막 곡이 바로 다음 순환의
+         첫 곡으로 이어지지 않도록 함 (곡이 2개 이상일 때) */
+    function shuffleArray(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    function makeShuffledOrder(avoidFirst) {
+        let order;
+        do {
+            order = shuffleArray(tracks.map((_, i) => i));
+        } while (tracks.length > 1 && avoidFirst !== undefined && order[0] === avoidFirst);
+        return order;
+    }
+
+    let playOrder = makeShuffledOrder();
+    let orderIndex = 0;
+    let current = playOrder[orderIndex];
+
+    function loadTrack(trackIndex, autoplay) {
+        current = trackIndex;
         audio.src = tracks[current].src;
         titleEl.textContent = tracks[current].title;
         if (autoplay) {
@@ -573,6 +599,23 @@
             isPlaying = false;
             playBtn.textContent = '▷';
         }
+    }
+
+    function goToNext(autoplay) {
+        orderIndex++;
+        if (orderIndex >= playOrder.length) {
+            playOrder = makeShuffledOrder(playOrder[playOrder.length - 1]);
+            orderIndex = 0;
+        }
+        loadTrack(playOrder[orderIndex], autoplay);
+    }
+
+    function goToPrev(autoplay) {
+        orderIndex--;
+        if (orderIndex < 0) {
+            orderIndex = playOrder.length - 1;
+        }
+        loadTrack(playOrder[orderIndex], autoplay);
     }
 
     playBtn.addEventListener('click', () => {
@@ -593,15 +636,15 @@
     });
 
     document.getElementById('btn-prev').addEventListener('click', () => {
-        loadTrack(current - 1, true);
+        goToPrev(true);
     });
 
     document.getElementById('btn-next').addEventListener('click', () => {
-        loadTrack(current + 1, true);
+        goToNext(true);
     });
 
     audio.addEventListener('ended', () => {
-        loadTrack(current + 1, true);
+        goToNext(true);
     });
 
     // 초기 상태: 자동재생 시도, 브라우저 정책으로 막히면 첫 클릭 시 재생
