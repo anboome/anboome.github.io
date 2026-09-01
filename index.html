@@ -15,7 +15,7 @@
    2. 공지사항 한 줄
    3. 구분선
    4. 중간 이미지
-   5. 음악 플레이어 (곡 4개, 셔플 재생, prev/재생/next 실제 작동)
+   5. 음악 플레이어 (곡 5개, 셔플 재생, prev/재생/next 실제 작동)
    6. 방명록 (같은 페이지 안에서 펼쳐짐, BGM 안 끊김)
    6-2. 일기 (Supabase 연동, 주인만 작성 / 방문자는 표정 반응만)
    7. 카피라이트
@@ -30,6 +30,12 @@
   4) 이 파일 하단 스크립트의 SUPABASE_ANON_KEY 값을
      Settings > API 의 "anon public" 키로 교체
   5) 사이트에서 일기 칸의 ✎ 를 눌러 방금 만든 계정으로 로그인하면 글쓰기 가능
+
+  ★ 이번 수정 내역 ★
+  - [버그 수정] tracks 배열에서 콤마 누락으로 음악 전체가 재생되지 않던 문제 수정
+  - [일기] 줄바꿈 시 문단 간격을 넓게 (line-height 상향 + 문단 사이 여백)
+  - [모바일] 커스텀 커서(햄스터)는 터치 기기에서 OS 특성상 표시가 안 되는데,
+    대신 화면을 터치하고 있는 동안 손가락 위치를 따라다니는 작은 햄스터 아이콘을 추가함
   ============================================================
 -->
 
@@ -398,9 +404,16 @@
     .diary-item-content {
         font-size: 12px;
         color: var(--gray-700);
-        line-height: 1.8;
-        white-space: pre-wrap;
+        /* 줄 간격을 넓게: 문단 사이 여백은 아래 <p> 마진으로, 줄 자체 높이는 line-height로 */
+        line-height: 2.2;
         margin-bottom: 12px;
+    }
+    .diary-item-content p {
+        white-space: pre-wrap;
+        margin: 0 0 14px 0;
+    }
+    .diary-item-content p:last-child {
+        margin-bottom: 0;
     }
     .diary-reactions {
         display: flex;
@@ -449,6 +462,28 @@
         .middle-photo, .player, .guest, .diary { margin-left: 18px; margin-right: 18px; }
         .player { flex-wrap: wrap; }
         .player .controls { font-size: 18px; }
+    }
+
+    /* ===== 터치 기기용 햄스터 팔로워 =====
+       CSS의 cursor:url()은 마우스 포인터가 있는 기기에서만 보이고,
+       터치스크린(모바일)에는 애초에 "커서"라는 개념이 없어서 브라우저가 그려주지 않아요.
+       그래서 대신, 손가락으로 화면을 누르고 있는 동안에만
+       그 위치를 따라다니는 작은 햄스터 아이콘을 JS로 직접 띄워줍니다. */
+    #hamster-follower {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 32px;
+        height: 32px;
+        pointer-events: none;
+        z-index: 9999;
+        display: none;
+        transform: translate(-6px, -6px);
+    }
+    #hamster-follower img {
+        width: 100%;
+        height: 100%;
+        display: block;
     }
 </style>
 </head>
@@ -542,6 +577,9 @@
     <footer>(C) 2026. 붐이 홈피. all rights reserved.</footer>
 
 </div>
+
+<!-- 모바일 터치용 햄스터 팔로워 -->
+<div id="hamster-follower"><img src="hamster10.gif" alt=""></div>
 
 <script>
     // 재생목록: 여기에 곡을 추가/삭제하면 자동으로 셔플 재생에 반영됩니다.
@@ -664,6 +702,40 @@
         };
         document.addEventListener('click', startOnFirstClick);
     });
+</script>
+
+<!-- 모바일 터치 시 손가락을 따라다니는 햄스터 아이콘 -->
+<script>
+    (function () {
+        const follower = document.getElementById('hamster-follower');
+        if (!follower) return;
+
+        function moveTo(x, y) {
+            follower.style.left = x + 'px';
+            follower.style.top = y + 'px';
+        }
+
+        document.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            if (!t) return;
+            follower.style.display = 'block';
+            moveTo(t.clientX, t.clientY);
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            const t = e.touches[0];
+            if (!t) return;
+            moveTo(t.clientX, t.clientY);
+        }, { passive: true });
+
+        document.addEventListener('touchend', () => {
+            follower.style.display = 'none';
+        }, { passive: true });
+
+        document.addEventListener('touchcancel', () => {
+            follower.style.display = 'none';
+        }, { passive: true });
+    })();
 </script>
 
 <!-- ============================================================
@@ -924,9 +996,20 @@
             const body = document.createElement('div');
             body.className = 'diary-item-body';
 
+            // 줄바꿈(빈 줄 기준)마다 <p> 로 나눠서 문단 사이 여백(margin)이
+            // 확실히 들어가도록 함. 빈 줄이 없고 단순 줄바꿈만 있는 글도
+            // 자연스럽게 문단으로 처리되도록 처리.
             const content = document.createElement('div');
             content.className = 'diary-item-content';
-            content.textContent = post.content;
+            const paragraphs = post.content
+                .split(/\n{2,}/)
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
+            (paragraphs.length ? paragraphs : [post.content]).forEach(paragraph => {
+                const p = document.createElement('p');
+                p.textContent = paragraph;
+                content.appendChild(p);
+            });
 
             const reactionsRow = document.createElement('div');
             reactionsRow.className = 'diary-reactions';
