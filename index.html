@@ -497,7 +497,7 @@
     <!-- 1. 소개 -->
     <div class="intro">
         <p class="sub">9월의 목표: 밥 잘 먹고 잠 잘 자기</p>
-        <p class="env-note">Tip.방명록에 질문을 남기면 전광판으로 대답을 받을 수 있어요</p>
+        <p class="env-note">오늘도 햄복하세요</p>
     </div>
 
     <!-- 2. 공지 한 줄 -->
@@ -712,6 +712,10 @@
     (function () {
         const follower = document.getElementById('hamster-follower');
         if (!follower) return;
+
+        // 터치 가능한 기기(모바일/태블릿)에서만 동작. PC는 건드리지 않음.
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        if (!isTouchDevice) return;
 
         function moveTo(x, y) {
             follower.style.left = x + 'px';
