@@ -35,7 +35,8 @@
   - [버그 수정] tracks 배열에서 콤마 누락으로 음악 전체가 재생되지 않던 문제 수정
   - [일기] 줄바꿈 시 문단 간격을 넓게 (line-height 상향 + 문단 사이 여백)
   - [모바일] 커스텀 커서(햄스터)는 터치 기기에서 OS 특성상 표시가 안 되는데,
-    대신 화면을 터치하고 있는 동안 손가락 위치를 따라다니는 작은 햄스터 아이콘을 추가함
+    대신 화면에 항상 햄스터 아이콘이 떠 있고, 터치하면 손가락을 따라가고,
+    손을 떼면 그 자리에 그대로 멈춰 있음
   ============================================================
 -->
 
@@ -467,8 +468,9 @@
     /* ===== 터치 기기용 햄스터 팔로워 =====
        CSS의 cursor:url()은 마우스 포인터가 있는 기기에서만 보이고,
        터치스크린(모바일)에는 애초에 "커서"라는 개념이 없어서 브라우저가 그려주지 않아요.
-       그래서 대신, 손가락으로 화면을 누르고 있는 동안에만
-       그 위치를 따라다니는 작은 햄스터 아이콘을 JS로 직접 띄워줍니다. */
+       그래서 대신, 화면에 항상 작은 햄스터 아이콘을 하나 띄워두고
+       손가락으로 누르고 있는 동안엔 그 위치를 따라가고,
+       손을 떼면 마지막 위치에 그대로 멈춰 있게 합니다. */
     #hamster-follower {
         position: fixed;
         top: 0;
@@ -495,7 +497,7 @@
     <!-- 1. 소개 -->
     <div class="intro">
         <p class="sub">9월의 목표: 밥 잘 먹고 잠 잘 자기</p>
-        <p class="env-note">오늘도 햄복하세요</p>
+        <p class="env-note">Tip.방명록에 질문을 남기면 전광판으로 대답을 받을 수 있어요</p>
     </div>
 
     <!-- 2. 공지 한 줄 -->
@@ -704,7 +706,8 @@
     });
 </script>
 
-<!-- 모바일 터치 시 손가락을 따라다니는 햄스터 아이콘 -->
+<!-- 모바일: 화면에 항상 떠 있는 햄스터. 터치하면 손가락을 따라가고,
+     손을 떼면 그 자리에 그대로 멈춰 있음 -->
 <script>
     (function () {
         const follower = document.getElementById('hamster-follower');
@@ -714,6 +717,13 @@
             follower.style.left = x + 'px';
             follower.style.top = y + 'px';
         }
+
+        // 처음엔 화면 중앙쯤에 기본으로 떠 있게 시작
+        function showAtDefaultPosition() {
+            follower.style.display = 'block';
+            moveTo(window.innerWidth / 2, window.innerHeight / 2);
+        }
+        showAtDefaultPosition();
 
         document.addEventListener('touchstart', (e) => {
             const t = e.touches[0];
@@ -728,13 +738,8 @@
             moveTo(t.clientX, t.clientY);
         }, { passive: true });
 
-        document.addEventListener('touchend', () => {
-            follower.style.display = 'none';
-        }, { passive: true });
-
-        document.addEventListener('touchcancel', () => {
-            follower.style.display = 'none';
-        }, { passive: true });
+        // 손을 떼도 숨기지 않고, 마지막 위치에 그대로 남아있게 함
+        // (touchend / touchcancel 리스너 없음 = 마지막 위치 유지)
     })();
 </script>
 
