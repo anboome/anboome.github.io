@@ -4,12 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>붐이 홈피</title>
-
 <!--
   ============================================================
   heavenlyside5.naru.pub 스타일 (흰색 + 회색 미니멀) 레이아웃.
   포인트 컬러는 아래 :root 의 --accent 한 줄만 바꾸면 전체에 적용돼요.
-
   섹션 순서:
    1. 소개 문구
    2. 공지사항 한 줄
@@ -19,9 +17,7 @@
    6. 방명록 (같은 페이지 안에서 펼쳐짐, BGM 안 끊김)
    6-2. 일기 (Supabase 연동, 주인만 작성 / 방문자는 표정 반응만)
    7. 카피라이트
-
   PC/모바일 둘 다 자연스럽게 보이도록 유동폭(%) + 최대폭 구조로 짰습니다.
-
   ★ 일기 기능을 쓰려면 아래 순서대로 준비해 주세요 ★
   1) Supabase 대시보드 SQL Editor에서 안내받은 SQL 실행 (테이블 + 보안 규칙 생성)
   2) Authentication > Providers 에서 Email 활성화 확인
@@ -30,28 +26,24 @@
   4) 이 파일 하단 스크립트의 SUPABASE_ANON_KEY 값을
      Settings > API 의 "anon public" 키로 교체
   5) 사이트에서 일기 칸의 ✎ 를 눌러 방금 만든 계정으로 로그인하면 글쓰기 가능
-
   ★ 이번 수정 내역 ★
-  - [모바일] 음악 플레이어 곡 제목 자간이 너무 좁아 글자가 겹쳐 보이던 문제 수정
-    (letter-spacing 0.3px → 0.8px, 모바일에서는 1px)
+  - [모바일] 음악 플레이어 곡 제목 폰트가 위아래로 잘려 보이던 문제 수정
+    (line-height 및 상하 padding 보강, 도트폰트 특성상 기본 line-height로는
+     글자 높이가 다 안 나와서 잘려 보였던 것)
   ============================================================
 -->
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
-
 <style>
     @font-face {
         font-family: 'TypoEnterForever10';
         src: url('typoenter-forever10.ttf') format('truetype');
         font-display: swap;
     }
-
     :root {
         /* 포인트 색상만 여기서 지정해 주세요. 나머지는 전부 흰색/회색입니다. */
         --accent: color-mix(in srgb, #fe1d72 70%, white);
-
         --white: #ffffff;
         --gray-50: #fafafa;
         --gray-100: #f2f2f2;
@@ -61,18 +53,15 @@
         --gray-700: #555555;
         --gray-900: #222222;
     }
-
     * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
         cursor: url('hamster10.gif'), auto;
     }
-
     html, body {
         width: 100%;
     }
-
     body {
         min-height: 100vh;
         background: var(--gray-100);
@@ -83,7 +72,6 @@
         font-family: 'TypoEnterForever10', 'Nanum Gothic', sans-serif;
         color: var(--gray-700);
     }
-
     /* ===== 전체 프레임: 데스크탑에서는 700px 고정, 모바일에서는 화면폭에 맞춰 유동 ===== */
     .site {
         width: 100%;
@@ -91,7 +79,6 @@
         background: var(--white);
         border: 1px solid var(--gray-300);
     }
-
     /* ===== 1. 소개 영역 ===== */
     .intro {
         padding: 30px 32px 20px;
@@ -108,7 +95,6 @@
         font-size: 11px;
         color: var(--gray-300);
     }
-
     /* ===== 2. 공지 한 줄 ===== */
     .notice-wrap {
         overflow-x: hidden;
@@ -133,7 +119,6 @@
     @media (prefers-reduced-motion: reduce) {
         .notice-track { animation: none; padding-left: 0; }
     }
-
     /* ===== 3. 구분선 ===== */
     .dots {
         text-align: center;
@@ -142,7 +127,6 @@
         font-size: 11px;
         padding: 18px 0 4px;
     }
-
     /* ===== 4. 중간 이미지 ===== */
     .middle-photo {
         margin: 18px 32px 0;
@@ -154,7 +138,6 @@
         display: block;
         object-fit: cover;
     }
-
     /* ===== 5. 음악 플레이어 ===== */
     .player {
         margin: 22px 32px 0;
@@ -187,6 +170,8 @@
         font-size: 12px;
         color: var(--gray-700);
         letter-spacing: 0.8px;
+        line-height: 1.8;
+        padding: 3px 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -202,7 +187,6 @@
         cursor: pointer;
         user-select: none;
     }
-
     /* ===== 6. 방명록 (같은 페이지 안에서 펼쳐짐) ===== */
     .guest {
         margin: 22px 32px 0;
@@ -222,13 +206,11 @@
         user-select: none;
     }
     .guest-header:hover { color: var(--accent); }
-
     .guest-panel {
         display: none;
         padding: 14px;
     }
     .guest-panel.open { display: block; }
-
     .guest-form {
         display: flex;
         flex-direction: column;
@@ -261,7 +243,6 @@
     }
     .guest-form button:hover { background: var(--accent); border-color: var(--accent); color: var(--white); }
     .guest-form button:disabled { opacity: 0.5; cursor: not-allowed; background: var(--white); color: var(--gray-700); border-color: var(--gray-300); }
-
     .guest-color-row {
         display: flex;
         align-items: center;
@@ -290,10 +271,8 @@
         background: var(--white);
         text-transform: lowercase;
     }
-
     .guest-status { font-size: 11px; color: var(--gray-500); min-height: 14px; }
     .guest-status.locked { color: #b3554a; font-weight: bold; }
-
     .guest-list { list-style: none; border-top: 1px solid var(--gray-200); }
     .guest-entry {
         padding: 10px 2px;
@@ -305,7 +284,6 @@
     }
     .guest-entry .name { color: var(--gray-900); font-weight: bold; margin-right: 4px; }
     .guest-entry-empty { padding: 16px 2px; font-size: 12px; color: var(--gray-300); text-align: center; }
-
     /* ===== 6-2. 일기 ===== */
     .diary {
         margin: 22px 32px 0;
@@ -329,7 +307,6 @@
         user-select: none;
     }
     .diary-login-link:hover { color: var(--accent); }
-
     .diary-login-box, .diary-write-box {
         padding: 12px 14px;
         border-bottom: 1px solid var(--gray-200);
@@ -371,7 +348,6 @@
         display: flex;
         gap: 8px;
     }
-
     .diary-list {
         list-style: none;
     }
@@ -442,7 +418,6 @@
         color: var(--gray-300);
         text-align: center;
     }
-
     /* ===== 7. 푸터 ===== */
     footer {
         text-align: center;
@@ -451,7 +426,6 @@
         padding: 22px 0 20px;
         letter-spacing: 0.5px;
     }
-
     /* ===== 모바일 대응 ===== */
     @media (max-width: 480px) {
         body { padding: 0; }
@@ -460,9 +434,12 @@
         .middle-photo, .player, .guest, .diary { margin-left: 18px; margin-right: 18px; }
         .player { flex-wrap: wrap; }
         .player .controls { font-size: 18px; }
-        .player .status { letter-spacing: 1px; }
+        .player .status {
+            letter-spacing: 1px;
+            line-height: 2;
+            padding: 4px 0;
+        }
     }
-
     /* ===== 터치 기기용 햄스터 팔로워 =====
        CSS의 cursor:url()은 마우스 포인터가 있는 기기에서만 보이고,
        터치스크린(모바일)에는 애초에 "커서"라는 개념이 없어서 브라우저가 그려주지 않아요.
@@ -483,33 +460,27 @@
     #hamster-follower img {
         width: 100%;
         height: 100%;
+        object-fit: contain;
         display: block;
     }
 </style>
 </head>
-
 <body>
-
 <div class="site">
-
     <!-- 1. 소개 -->
     <div class="intro">
         <p class="sub">9월의 목표: 밥 잘 먹고 잠 잘 자기</p>
         <p class="env-note">오늘도 햄복하세요</p>
     </div>
-
     <!-- 2. 공지 한 줄 -->
     <div class="notice-wrap">
         <span class="notice-track">자주 갈게 자주 보자 </span>
     </div>
-
     <div class="dots">• • • • • • • • • •</div>
-
     <!-- 4. 중간 이미지 -->
     <div class="middle-photo">
         <img src="https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/sign/akfus/tofhwjwkd%20(1).jpg?token=eyJraWQiOiI5MWQ0NGMxYy0yMWJhLTRlN2QtYjM1Mi01NWYwYmI0NzNkODEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJha2Z1cy90b2Zod2p3a2QgKDEpLmpwZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgwODIxODIsImV4cCI6MTgxOTYxODE4Mn0.0Ute_eNqBrukhq1T3-xVM8lAmK1ESMxYbrJRICG1Ceg" alt="">
     </div>
-
     <!-- 5. 음악 플레이어 -->
     <div class="player">
         <div class="cover">
@@ -525,7 +496,6 @@
         </div>
     </div>
     <audio id="bgm" preload="none"></audio>
-
     <!-- 6. 방명록: 새 페이지로 안 가고 같은 화면에서 펼쳐짐 (BGM 유지) -->
     <div class="guest">
         <div class="guest-header" id="guest-toggle">+ 방명록</div>
@@ -545,20 +515,17 @@
             </ul>
         </div>
     </div>
-
     <!-- 6-2. 일기 (사이트 주인만 글쓰기 가능, 방문자는 표정 반응만) -->
     <div class="diary">
         <div class="diary-header">
             <span>+ 일기</span>
             <span class="diary-login-link" id="diary-login-toggle" title="주인만">✎</span>
         </div>
-
         <div class="diary-login-box" id="diary-login-box" style="display:none;">
             <input type="email" id="diary-email" placeholder="이메일">
             <input type="password" id="diary-password" placeholder="비밀번호">
             <button id="diary-login-btn" type="button">로그인</button>
         </div>
-
         <div class="diary-write-box" id="diary-write-box" style="display:none;">
             <input type="text" id="diary-title-input" placeholder="제목">
             <textarea id="diary-content-input" placeholder="내용을 적어주세요"></textarea>
@@ -567,20 +534,15 @@
                 <button id="diary-logout-btn" type="button">로그아웃</button>
             </div>
         </div>
-
         <ul class="diary-list" id="diary-list">
             <li class="diary-empty">불러오는 중...</li>
         </ul>
     </div>
-
     <!-- 7. 푸터 -->
     <footer>(C) 2026. 붐이 홈피. all rights reserved.</footer>
-
 </div>
-
 <!-- 모바일 터치용 햄스터 팔로워 -->
 <div id="hamster-follower"><img src="hamster10.gif" alt=""></div>
-
 <script>
     // 재생목록: 여기에 곡을 추가/삭제하면 자동으로 셔플 재생에 반영됩니다.
     const tracks = [
@@ -592,13 +554,10 @@
         { title: "김채원의 confession..♪", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/KIM%20CHAEWON%20confession.mp3" },
         { title: "마복필의 kiss x3..♪", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/kiss%20x3.mp3" }
     ];
-
     let isPlaying = false;
-
     const audio = document.getElementById('bgm');
     const titleEl = document.getElementById('track-title');
     const playBtn = document.getElementById('btn-play');
-
     /* ===== 셔플 재생 로직 =====
        - playOrder: 곡 인덱스를 무작위로 섞은 배열 (한 순환)
        - 한 순환이 끝나면 다시 섞되, 방금 들었던 마지막 곡이 바로 다음 순환의
@@ -611,7 +570,6 @@
         }
         return a;
     }
-
     function makeShuffledOrder(avoidFirst) {
         let order;
         do {
@@ -619,11 +577,9 @@
         } while (tracks.length > 1 && avoidFirst !== undefined && order[0] === avoidFirst);
         return order;
     }
-
     let playOrder = makeShuffledOrder();
     let orderIndex = 0;
     let current = playOrder[orderIndex];
-
     function loadTrack(trackIndex, autoplay) {
         current = trackIndex;
         audio.src = tracks[current].src;
@@ -641,7 +597,6 @@
             playBtn.textContent = '▷';
         }
     }
-
     function goToNext(autoplay) {
         orderIndex++;
         if (orderIndex >= playOrder.length) {
@@ -650,7 +605,6 @@
         }
         loadTrack(playOrder[orderIndex], autoplay);
     }
-
     function goToPrev(autoplay) {
         orderIndex--;
         if (orderIndex < 0) {
@@ -658,7 +612,6 @@
         }
         loadTrack(playOrder[orderIndex], autoplay);
     }
-
     playBtn.addEventListener('click', () => {
         if (!audio.src) {
             loadTrack(current, true);
@@ -675,19 +628,15 @@
             });
         }
     });
-
     document.getElementById('btn-prev').addEventListener('click', () => {
         goToPrev(true);
     });
-
     document.getElementById('btn-next').addEventListener('click', () => {
         goToNext(true);
     });
-
     audio.addEventListener('ended', () => {
         goToNext(true);
     });
-
     // 초기 상태: 자동재생 시도, 브라우저 정책으로 막히면 첫 클릭 시 재생
     titleEl.textContent = tracks[current].title;
     loadTrack(current, false);
@@ -705,48 +654,40 @@
         document.addEventListener('click', startOnFirstClick);
     });
 </script>
-
 <!-- 모바일: 화면에 항상 떠 있는 햄스터. 터치하면 손가락을 따라가고,
      손을 떼면 그 자리에 그대로 멈춰 있음 -->
 <script>
     (function () {
         const follower = document.getElementById('hamster-follower');
         if (!follower) return;
-
         // 터치 가능한 기기(모바일/태블릿)에서만 동작. PC는 건드리지 않음.
         const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         if (!isTouchDevice) return;
-
         function moveTo(x, y) {
             follower.style.left = x + 'px';
             follower.style.top = y + 'px';
         }
-
         // 처음엔 화면 중앙쯤에 기본으로 떠 있게 시작
         function showAtDefaultPosition() {
             follower.style.display = 'block';
             moveTo(window.innerWidth / 2, window.innerHeight / 2);
         }
         showAtDefaultPosition();
-
         document.addEventListener('touchstart', (e) => {
             const t = e.touches[0];
             if (!t) return;
             follower.style.display = 'block';
             moveTo(t.clientX, t.clientY);
         }, { passive: true });
-
         document.addEventListener('touchmove', (e) => {
             const t = e.touches[0];
             if (!t) return;
             moveTo(t.clientX, t.clientY);
         }, { passive: true });
-
         // 손을 떼도 숨기지 않고, 마지막 위치에 그대로 남아있게 함
         // (touchend / touchcancel 리스너 없음 = 마지막 위치 유지)
     })();
 </script>
-
 <!-- ============================================================
      방명록 + 일기 기능: Supabase 연동 (같은 클라이언트 공유)
      ============================================================ -->
@@ -754,9 +695,7 @@
 <script>
     const SUPABASE_URL = 'https://nlvkfrekpundyinhgtzo.supabase.co'; // 프로젝트 URL
     const SUPABASE_ANON_KEY = 'sb_publishable_DQs8rT0Ff8WbemjjVSuV7w_DavNXXO3';
-
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     // 방문자 UUID (localStorage, 방명록/일기 반응 공통으로 사용)
     function getVisitorId() {
         let id = localStorage.getItem('visitor_id');
@@ -767,7 +706,6 @@
         return id;
     }
     const visitorId = getVisitorId();
-
     let visitorIp = null;
     async function getVisitorIp() {
         if (visitorIp) return visitorIp;
@@ -780,7 +718,6 @@
         }
         return visitorIp;
     }
-
     /* ===================== 방명록 ===================== */
     const guestToggle = document.getElementById('guest-toggle');
     const guestPanel = document.getElementById('guest-panel');
@@ -790,9 +727,7 @@
     const guestSubmitBtn = document.getElementById('guest-submit-btn');
     const guestStatusMsg = document.getElementById('guest-status-msg');
     const guestListEl = document.getElementById('guest-list');
-
     const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
-
     guestColorPicker.addEventListener('input', () => {
         guestColorHex.value = guestColorPicker.value;
     });
@@ -803,16 +738,13 @@
             guestColorPicker.value = v;
         }
     });
-
     function getValidGuestColor() {
         let v = guestColorHex.value.trim();
         if (!v) return null;
         if (!v.startsWith('#')) v = '#' + v;
         return HEX_COLOR_RE.test(v) ? v : null;
     }
-
     let guestLoaded = false;
-
     guestToggle.addEventListener('click', () => {
         guestPanel.classList.toggle('open');
         if (guestPanel.classList.contains('open') && !guestLoaded) {
@@ -820,19 +752,15 @@
             loadGuestMessages();
         }
     });
-
     const GUEST_SPAM_LIMIT = 3;
     const GUEST_LOCK_DURATION = 24 * 60 * 60 * 1000;
-
     function getGuestPostCount() { return parseInt(localStorage.getItem('post_count') || '0', 10); }
     function setGuestPostCount(n) { localStorage.setItem('post_count', String(n)); }
     function getGuestLockUntil() { return parseInt(localStorage.getItem('lock_until') || '0', 10); }
     function setGuestLockUntil(ts) { localStorage.setItem('lock_until', String(ts)); }
-
     function checkAndApplyGuestLock() {
         const lockUntil = getGuestLockUntil();
         const now = Date.now();
-
         if (lockUntil && now < lockUntil) {
             guestSubmitBtn.disabled = true;
             guestMsgEl.disabled = true;
@@ -851,26 +779,20 @@
             return false;
         }
     }
-
     let guestSubmitting = false;
-
     async function addGuestMessage() {
         if (guestSubmitting) return;
         if (checkAndApplyGuestLock()) return;
-
         const msg = guestMsgEl.value.trim();
         if (!msg) {
             guestStatusMsg.textContent = '메시지를 입력해주세요!';
             return;
         }
-
         guestSubmitting = true;
         guestSubmitBtn.disabled = true;
         guestStatusMsg.textContent = '등록 중...';
-
         const ip = await getVisitorIp();
         const color = getValidGuestColor();
-
         const { error } = await sb
             .from('guestbook')
             .insert([{
@@ -880,7 +802,6 @@
                 ip_address: ip,
                 color: color
             }]);
-
         if (error) {
             console.log(error);
             guestStatusMsg.textContent = '등록 실패 😢 다시 시도해주세요.';
@@ -888,15 +809,12 @@
             guestSubmitBtn.disabled = false;
             return;
         }
-
         const newCount = getGuestPostCount() + 1;
         setGuestPostCount(newCount);
-
         guestMsgEl.value = '';
         guestColorHex.value = '';
         guestColorPicker.value = '#555555';
         guestSubmitting = false;
-
         if (newCount >= GUEST_SPAM_LIMIT) {
             setGuestLockUntil(Date.now() + GUEST_LOCK_DURATION);
             checkAndApplyGuestLock();
@@ -905,10 +823,8 @@
             guestSubmitBtn.disabled = false;
             setTimeout(() => { if (!checkAndApplyGuestLock()) guestStatusMsg.textContent = ''; }, 2000);
         }
-
         loadGuestMessages();
     }
-
     guestSubmitBtn.addEventListener('click', addGuestMessage);
     guestMsgEl.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -916,7 +832,6 @@
             addGuestMessage();
         }
     });
-
     async function loadGuestMessages() {
         const { data } = await sb
             .from('guestbook')
@@ -937,10 +852,8 @@
             guestListEl.appendChild(li);
         });
     }
-
     checkAndApplyGuestLock();
     setInterval(checkAndApplyGuestLock, 60 * 1000);
-
     /* ===================== 일기 ===================== */
     const REACTIONS = [
         { type: 'heart', emoji: '❤️' },
@@ -949,7 +862,6 @@
         { type: 'sad',   emoji: '😢' },
         { type: 'tear',  emoji: '😭' }
     ];
-
     const diaryList = document.getElementById('diary-list');
     const loginToggle = document.getElementById('diary-login-toggle');
     const loginBox = document.getElementById('diary-login-box');
@@ -957,54 +869,42 @@
     const loginBtn = document.getElementById('diary-login-btn');
     const logoutBtn = document.getElementById('diary-logout-btn');
     const submitBtn = document.getElementById('diary-submit-btn');
-
     let isOwner = false;
-
     function formatDate(iso) {
         const d = new Date(iso);
         return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
     }
-
     async function loadDiary() {
         const { data: posts, error: postErr } = await sb
             .from('diary_posts')
             .select('id, title, content, created_at')
             .order('created_at', { ascending: false });
-
         if (postErr) {
             diaryList.innerHTML = `<li class="diary-empty">일기를 불러오지 못했어요</li>`;
             console.error(postErr);
             return;
         }
-
         if (!posts || posts.length === 0) {
             diaryList.innerHTML = `<li class="diary-empty">아직 쓴 일기가 없어요</li>`;
             return;
         }
-
         const { data: reactions } = await sb
             .from('diary_reactions')
             .select('post_id, reaction_type');
-
         const counts = {};
         (reactions || []).forEach(r => {
             counts[r.post_id] = counts[r.post_id] || {};
             counts[r.post_id][r.reaction_type] = (counts[r.post_id][r.reaction_type] || 0) + 1;
         });
-
         diaryList.innerHTML = '';
-
         posts.forEach(post => {
             const li = document.createElement('li');
             li.className = 'diary-item';
-
             const titleRow = document.createElement('div');
             titleRow.className = 'diary-item-title';
             titleRow.innerHTML = `<span>${escapeHtml(post.title)}</span><span class="diary-item-date">${formatDate(post.created_at)}</span>`;
-
             const body = document.createElement('div');
             body.className = 'diary-item-body';
-
             // 줄바꿈(빈 줄 기준)마다 <p> 로 나눠서 문단 사이 여백(margin)이
             // 확실히 들어가도록 함. 빈 줄이 없고 단순 줄바꿈만 있는 글도
             // 자연스럽게 문단으로 처리되도록 처리.
@@ -1019,16 +919,13 @@
                 p.textContent = paragraph;
                 content.appendChild(p);
             });
-
             const reactionsRow = document.createElement('div');
             reactionsRow.className = 'diary-reactions';
-
             REACTIONS.forEach(r => {
                 const btn = document.createElement('button');
                 btn.className = 'reaction-btn';
                 const count = (counts[post.id] && counts[post.id][r.type]) || 0;
                 btn.innerHTML = `${r.emoji} <span class="count">${count}</span>`;
-
                 btn.addEventListener('click', async () => {
                     btn.disabled = true;
                     const ip = await getVisitorIp();
@@ -1046,29 +943,23 @@
                         console.error(error);
                     }
                 });
-
                 reactionsRow.appendChild(btn);
             });
-
             body.appendChild(content);
             body.appendChild(reactionsRow);
-
             titleRow.addEventListener('click', () => {
                 li.classList.toggle('open');
             });
-
             li.appendChild(titleRow);
             li.appendChild(body);
             diaryList.appendChild(li);
         });
     }
-
     function escapeHtml(str) {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
     }
-
     loginToggle.addEventListener('click', () => {
         if (isOwner) {
             writeBox.style.display = writeBox.style.display === 'none' ? 'flex' : 'none';
@@ -1076,7 +967,6 @@
             loginBox.style.display = loginBox.style.display === 'none' ? 'flex' : 'none';
         }
     });
-
     loginBtn.addEventListener('click', async () => {
         const email = document.getElementById('diary-email').value.trim();
         const password = document.getElementById('diary-password').value;
@@ -1089,13 +979,11 @@
         loginBox.style.display = 'none';
         writeBox.style.display = 'flex';
     });
-
     logoutBtn.addEventListener('click', async () => {
         await sb.auth.signOut();
         isOwner = false;
         writeBox.style.display = 'none';
     });
-
     submitBtn.addEventListener('click', async () => {
         const title = document.getElementById('diary-title-input').value.trim();
         const content = document.getElementById('diary-content-input').value.trim();
@@ -1112,16 +1000,13 @@
         document.getElementById('diary-content-input').value = '';
         loadDiary();
     });
-
     (async function initDiaryAuth() {
         const { data } = await sb.auth.getSession();
         if (data && data.session) {
             isOwner = true;
         }
     })();
-
     loadDiary();
 </script>
-
 </body>
 </html>
