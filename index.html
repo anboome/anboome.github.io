@@ -12,11 +12,10 @@
    1. 소개 문구
    2. 공지사항 한 줄
    3. 구분선
-   4. 중간 이미지
-   5. 음악 플레이어 (곡 5개, 셔플 재생, prev/재생/next 실제 작동)
-   6. 방명록 (같은 페이지 안에서 펼쳐짐, BGM 안 끊김)
-   6-2. 일기 (Supabase 연동, 주인만 작성 / 방문자는 표정 반응만)
-   7. 카피라이트
+   4. 음악 플레이어 (곡 5개, 셔플 재생, prev/재생/next 실제 작동)
+   5. 방명록 (같은 페이지 안에서 펼쳐짐, BGM 안 끊김)
+   5-2. 일기 (Supabase 연동, 주인만 작성 / 방문자는 표정 반응만)
+   6. 카피라이트
   PC/모바일 둘 다 자연스럽게 보이도록 유동폭(%) + 최대폭 구조로 짰습니다.
   ★ 일기 기능을 쓰려면 아래 순서대로 준비해 주세요 ★
   1) Supabase 대시보드 SQL Editor에서 안내받은 SQL 실행 (테이블 + 보안 규칙 생성)
@@ -27,9 +26,7 @@
      Settings > API 의 "anon public" 키로 교체
   5) 사이트에서 일기 칸의 ✎ 를 눌러 방금 만든 계정으로 로그인하면 글쓰기 가능
   ★ 이번 수정 내역 ★
-  - [모바일] 음악 플레이어 곡 제목 폰트가 위아래로 잘려 보이던 문제 수정
-    (line-height 및 상하 padding 보강, 도트폰트 특성상 기본 line-height로는
-     글자 높이가 다 안 나와서 잘려 보였던 것)
+  - 중간 이미지 섹션 삭제, 구분선 다음으로 음악 플레이어가 바로 이어지도록 여백 자연스럽게 정리
   ============================================================
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -127,18 +124,7 @@
         font-size: 11px;
         padding: 18px 0 4px;
     }
-    /* ===== 4. 중간 이미지 ===== */
-    .middle-photo {
-        margin: 18px 32px 0;
-        border: 1px solid var(--gray-200);
-        line-height: 0;
-    }
-    .middle-photo img {
-        width: 100%;
-        display: block;
-        object-fit: cover;
-    }
-    /* ===== 5. 음악 플레이어 ===== */
+    /* ===== 4. 음악 플레이어 ===== */
     .player {
         margin: 22px 32px 0;
         display: flex;
@@ -187,7 +173,7 @@
         cursor: pointer;
         user-select: none;
     }
-    /* ===== 6. 방명록 (같은 페이지 안에서 펼쳐짐) ===== */
+    /* ===== 5. 방명록 (같은 페이지 안에서 펼쳐짐) ===== */
     .guest {
         margin: 22px 32px 0;
         border: 1px solid var(--gray-200);
@@ -284,7 +270,7 @@
     }
     .guest-entry .name { color: var(--gray-900); font-weight: bold; margin-right: 4px; }
     .guest-entry-empty { padding: 16px 2px; font-size: 12px; color: var(--gray-300); text-align: center; }
-    /* ===== 6-2. 일기 ===== */
+    /* ===== 5-2. 일기 ===== */
     .diary {
         margin: 22px 32px 0;
         border: 1px solid var(--gray-200);
@@ -418,7 +404,7 @@
         color: var(--gray-300);
         text-align: center;
     }
-    /* ===== 7. 푸터 ===== */
+    /* ===== 6. 푸터 ===== */
     footer {
         text-align: center;
         font-size: 10px;
@@ -431,7 +417,7 @@
         body { padding: 0; }
         .site { max-width: 100%; border-left: none; border-right: none; }
         .intro { padding: 22px 18px 14px; }
-        .middle-photo, .player, .guest, .diary { margin-left: 18px; margin-right: 18px; }
+        .player, .guest, .diary { margin-left: 18px; margin-right: 18px; }
         .player { flex-wrap: wrap; }
         .player .controls { font-size: 18px; }
         .player .status {
@@ -469,25 +455,21 @@
 <div class="site">
     <!-- 1. 소개 -->
     <div class="intro">
-        <p class="sub">9월의 목표: 밥 잘 먹고 잠 잘 자기</p>
-        <p class="env-note">오늘도 햄복하세요</p>
+        <p class="sub">9월의 목표: 밥 잘 먹고 잠 잘 자기 + 잘 쉬기</p>
+        <p class="env-note">오늘도 행복하세요</p>
     </div>
     <!-- 2. 공지 한 줄 -->
     <div class="notice-wrap">
-        <span class="notice-track">자주 갈게 자주 보자 </span>
+        <span class="notice-track">힘든 일은 어쨌든 다 지나가더라고.. 여기 오는 감자들도 힘내</span>
     </div>
     <div class="dots">• • • • • • • • • •</div>
-    <!-- 4. 중간 이미지 -->
-    <div class="middle-photo">
-        <img src="https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/sign/akfus/tofhwjwkd%20(1).jpg?token=eyJraWQiOiI5MWQ0NGMxYy0yMWJhLTRlN2QtYjM1Mi01NWYwYmI0NzNkODEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJha2Z1cy90b2Zod2p3a2QgKDEpLmpwZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODgwODIxODIsImV4cCI6MTgxOTYxODE4Mn0.0Ute_eNqBrukhq1T3-xVM8lAmK1ESMxYbrJRICG1Ceg" alt="">
-    </div>
-    <!-- 5. 음악 플레이어 -->
+    <!-- 4. 음악 플레이어 -->
     <div class="player">
         <div class="cover">
     <img src="https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/sign/akfus/rkskel.jpg?token=eyJraWQiOiI5MWQ0NGMxYy0yMWJhLTRlN2QtYjM1Mi01NWYwYmI0NzNkODEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJha2Z1cy9ya3NrZWwuanBnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODEwNjI1NywiZXhwIjoxODE5NjQyMjU3fQ.vO1DJk9d-vGgXWcUDvEXKKzQJshPHMCXeCT5HIw_QBs" alt="album art">
 </div>
         <div class="meta">
-            <div class="status" id="track-title">SKool julian</div>
+            <div class="status" id="track-title">soon - A lump of stone</div>
             <div class="controls">
                 <span id="btn-prev">≪</span>
                 <span id="btn-play">▷</span>
@@ -496,7 +478,7 @@
         </div>
     </div>
     <audio id="bgm" preload="none"></audio>
-    <!-- 6. 방명록: 새 페이지로 안 가고 같은 화면에서 펼쳐짐 (BGM 유지) -->
+    <!-- 5. 방명록: 새 페이지로 안 가고 같은 화면에서 펼쳐짐 (BGM 유지) -->
     <div class="guest">
         <div class="guest-header" id="guest-toggle">+ 방명록</div>
         <div class="guest-panel" id="guest-panel">
@@ -515,7 +497,7 @@
             </ul>
         </div>
     </div>
-    <!-- 6-2. 일기 (사이트 주인만 글쓰기 가능, 방문자는 표정 반응만) -->
+    <!-- 5-2. 일기 (사이트 주인만 글쓰기 가능, 방문자는 표정 반응만) -->
     <div class="diary">
         <div class="diary-header">
             <span>+ 일기</span>
@@ -538,7 +520,7 @@
             <li class="diary-empty">불러오는 중...</li>
         </ul>
     </div>
-    <!-- 7. 푸터 -->
+    <!-- 6. 푸터 -->
     <footer>(C) 2026. 붐이 홈피. all rights reserved.</footer>
 </div>
 <!-- 모바일 터치용 햄스터 팔로워 -->
@@ -546,13 +528,9 @@
 <script>
     // 재생목록: 여기에 곡을 추가/삭제하면 자동으로 셔플 재생에 반영됩니다.
     const tracks = [
-        { title: "SKool의 julian..♪ ", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/Skool%20Julian.mp3" }, 
-        { title: "장키키의 토마토마리네이드..♪ ", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/Tomato%20Marinade%20(feat.Yoon%20Hyeong%20Jun).mp3" },
-        { title: "기리보이의 하루 종일..♪ ", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/ALL%20DAY%20giriboy.mp3" },
-        { title: "여름이 가기 전에 Cruel Summer..♪ ", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/Taylor%20Swift%20Cruel%20Summer.mp3" },
-        { title: "The Melody의 Goodbye..♪", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/the%20melody%20GoodBye.mp3" },
-        { title: "김채원의 confession..♪", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/KIM%20CHAEWON%20confession.mp3" },
-        { title: "마복필의 kiss x3..♪", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/kiss%20x3.mp3" }
+        { title: "이제의 돌덩어리..♪ ", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/soon%20A%20lump%20of%20stone.mp3" },
+        { title: "소수빈의 너와 걷는 계절..♪ ", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/so%20su%20bin.mp3" },
+        { title: "A Journey through Time..♪ ", src: "https://nlvkfrekpundyinhgtzo.supabase.co/storage/v1/object/public/bgm/A%20Journey%20through%20Time.mp3" }
     ];
     let isPlaying = false;
     const audio = document.getElementById('bgm');
